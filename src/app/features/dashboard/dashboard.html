@@ -1,0 +1,103 @@
+<div class="min-h-screen bg-gray-50 flex flex-col">
+  <app-topbar />
+
+  <!-- Hero -->
+  <section class="max-w-2xl mx-auto px-6 py-16 text-center">
+    <span class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-emerald-600 bg-emerald-50 border border-emerald-200 px-4 py-1.5 rounded-full mb-6">
+      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+      Projet Académique — Groupe 1
+    </span>
+    <h1 class="text-4xl font-extrabold tracking-tight text-gray-900 leading-tight mb-4">
+      Gestion intégrée <span class="text-blue-700">multi-sites</span><br>
+      pour entreprises guinéennes
+    </h1>
+    <p class="text-base text-gray-600 leading-relaxed mb-8">
+      Centralisez vos stocks, ventes, finances et opérations logistiques
+      sur tous vos dépôts depuis une seule plateforme web.
+    </p>
+    <div class="flex gap-3 justify-center">
+      <a routerLink="/login" class="bg-blue-700 text-white font-semibold text-sm px-6 py-3 rounded-lg hover:bg-blue-800 transition-colors">
+        Se connecter
+      </a>
+      <button class="border-2 border-blue-700 text-blue-700 font-semibold text-sm px-6 py-3 rounded-lg hover:bg-blue-50 transition-colors">
+        Voir la démo
+      </button>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <div class="grid grid-cols-4 border-t border-b border-gray-200 mx-8 mb-10">
+    <div class="bg-white text-center py-5 border-r border-gray-200">
+      <p class="text-2xl font-extrabold text-blue-700">15+</p>
+      <p class="text-xs font-medium text-gray-400 uppercase tracking-widest mt-1">Modules métier</p>
+    </div>
+    <div class="bg-white text-center py-5 border-r border-gray-200">
+      <p class="text-2xl font-extrabold text-blue-700">7</p>
+      <p class="text-xs font-medium text-gray-400 uppercase tracking-widest mt-1">Rôles utilisateurs</p>
+    </div>
+    <div class="bg-white text-center py-5 border-r border-gray-200">
+      <p class="text-2xl font-extrabold text-blue-700">GNF</p>
+      <p class="text-xs font-medium text-gray-400 uppercase tracking-widest mt-1">Multi-devises</p>
+    </div>
+    <div class="bg-white text-center py-5">
+      <p class="text-2xl font-extrabold text-blue-700">SaaS</p>
+      <p class="text-xs font-medium text-gray-400 uppercase tracking-widest mt-1">Multi-entreprises</p>
+    </div>
+  </div>
+
+  <!-- Modules -->
+  <div class="px-8 pb-10">
+    <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">// Modules disponibles</p>
+    <div class="grid grid-cols-3 gap-3">
+      <div class="bg-white border border-gray-200 rounded-xl p-5 hover:border-blue-400 transition-colors cursor-pointer">
+        <div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center text-base mb-3">📦</div>
+        <p class="text-sm font-bold text-gray-900">Stocks & Produits</p>
+        <p class="text-xs text-gray-400 mt-1 leading-relaxed">Gestion multi-dépôts, FIFO/FEFO, transferts inter-sites</p>
+        <span class="inline-block mt-3 text-xs font-bold bg-blue-50 text-blue-700 px-2 py-0.5 rounded">Core</span>
+      </div>
+      <div class="bg-white border border-gray-200 rounded-xl p-5 hover:border-blue-400 transition-colors cursor-pointer">
+        <div class="w-9 h-9 bg-emerald-50 rounded-lg flex items-center justify-center text-base mb-3">💰</div>
+        <p class="text-sm font-bold text-gray-900">Finance & Caisses</p>
+        <p class="text-xs text-gray-400 mt-1 leading-relaxed">Hiérarchie 4 niveaux, Orange Money, MTN Money</p>
+        <span class="inline-block mt-3 text-xs font-bold bg-blue-50 text-blue-700 px-2 py-0.5 rounded">Core</span>
+      </div>
+      <div class="bg-white border border-gray-200 rounded-xl p-5 hover:border-blue-400 transition-colors cursor-pointer">
+        <div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center text-base mb-3">🚛</div>
+        <p class="text-sm font-bold text-gray-900">Logistique & Flotte</p>
+        <p class="text-xs text-gray-400 mt-1 leading-relaxed">GPS temps réel, QR missions, signature numérique</p>
+        <span class="inline-block mt-3 text-xs font-bold bg-blue-50 text-blue-700 px-2 py-0.5 rounded">Core</span>
+      </div>
+      <div class="bg-white border border-gray-200 rounded-xl p-5 hover:border-blue-400 transition-colors cursor-pointer">
+        <div class="w-9 h-9 bg-amber-50 rounded-lg flex items-center justify-center text-base mb-3">🛒</div>
+        <p class="text-sm font-bold text-gray-900">Ventes & Clients</p>
+        <p class="text-xs text-gray-400 mt-1 leading-relaxed">Factures PDF, devis, fidélité, TVA automatique</p>
+        <span class="inline-block mt-3 text-xs font-bold bg-blue-50 text-blue-700 px-2 py-0.5 rounded">Core</span>
+      </div>
+      <div class="bg-white border border-gray-200 rounded-xl p-5 hover:border-blue-400 transition-colors cursor-pointer">
+        <div class="w-9 h-9 bg-emerald-50 rounded-lg flex items-center justify-center text-base mb-3">👥</div>
+        <p class="text-sm font-bold text-gray-900">Ressources Humaines</p>
+        <p class="text-xs text-gray-400 mt-1 leading-relaxed">Présences, congés, affectations inter-dépôts</p>
+        <span class="inline-block mt-3 text-xs font-bold bg-blue-50 text-blue-700 px-2 py-0.5 rounded">Core</span>
+      </div>
+      <div class="bg-white border border-gray-200 rounded-xl p-5 hover:border-blue-400 transition-colors cursor-pointer">
+        <div class="w-9 h-9 bg-amber-50 rounded-lg flex items-center justify-center text-base mb-3">🤖</div>
+        <p class="text-sm font-bold text-gray-900">Intelligence Artificielle</p>
+        <p class="text-xs text-gray-400 mt-1 leading-relaxed">Prévisions ventes, détection anomalies, réappro auto</p>
+        <span class="inline-block mt-3 text-xs font-bold bg-amber-50 text-amber-800 px-2 py-0.5 rounded">Optionnel</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="mx-8 mb-10 bg-blue-700 rounded-2xl p-8 flex items-center justify-between gap-4 flex-wrap">
+    <div>
+      <h3 class="text-lg font-bold text-white mb-1">Prêt à centraliser vos opérations ?</h3>
+      <p class="text-sm text-blue-200">Connectez-vous pour accéder à votre espace entreprise.</p>
+    </div>
+    <a routerLink="/login" class="bg-white text-blue-700 font-bold text-sm px-6 py-3 rounded-lg hover:bg-blue-50 transition-colors whitespace-nowrap">
+      Se connecter →
+    </a>
+  </div>
+
+  <app-footer />
+</div>
