@@ -1,103 +1,322 @@
-<div class="min-h-screen bg-gray-50 flex flex-col">
+<div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 flex flex-col">
   <app-topbar />
 
-  <!-- Hero -->
-  <section class="max-w-2xl mx-auto px-6 py-16 text-center">
-    <span class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-emerald-600 bg-emerald-50 border border-emerald-200 px-4 py-1.5 rounded-full mb-6">
-      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-      Projet Académique — Groupe 1
-    </span>
-    <h1 class="text-4xl font-extrabold tracking-tight text-gray-900 leading-tight mb-4">
-      Gestion intégrée <span class="text-blue-700">multi-sites</span><br>
-      pour entreprises guinéennes
-    </h1>
-    <p class="text-base text-gray-600 leading-relaxed mb-8">
-      Centralisez vos stocks, ventes, finances et opérations logistiques
-      sur tous vos dépôts depuis une seule plateforme web.
-    </p>
-    <div class="flex gap-3 justify-center">
-      <a routerLink="/login" class="bg-blue-700 text-white font-semibold text-sm px-6 py-3 rounded-lg hover:bg-blue-800 transition-colors">
-        Se connecter
-      </a>
-      <button class="border-2 border-blue-700 text-blue-700 font-semibold text-sm px-6 py-3 rounded-lg hover:bg-blue-50 transition-colors">
-        Voir la démo
-      </button>
+  <!-- Hero Section -->
+  <section class="relative overflow-hidden">
+    <!-- Background decoration -->
+    <div class="absolute inset-0 overflow-hidden">
+      <div class="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-emerald-400/20 rounded-full blur-3xl"></div>
+      <div class="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-emerald-400/20 to-blue-400/20 rounded-full blur-3xl"></div>
+    </div>
+    
+    <div class="relative max-w-6xl mx-auto px-6 py-20 lg:py-32 text-center">
+      <!-- Badge -->
+      <div class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-emerald-600 bg-emerald-50 border border-emerald-200 px-4 py-2 rounded-full mb-8 animate-fade-in-down">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        Gestion d'Entreprise Multi-Sites
+      </div>
+      
+      <!-- Main Title -->
+      <h1 class="text-5xl lg:text-7xl font-extrabold tracking-tight text-gray-900 leading-tight mb-6 animate-fade-in-up">
+        Une Plateforme pour Gérer<br>
+        <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-emerald-500">Toute Votre Entreprise</span>
+      </h1>
+      
+      <!-- Description -->
+      <p class="text-xl text-gray-600 leading-relaxed mb-10 max-w-3xl mx-auto animate-fade-in-up animation-delay-200">
+        Solution ERP complète conçue pour centraliser vos opérations, optimiser vos processus et accélérer votre croissance sur tous vos sites.
+      </p>
+      
+      <!-- CTA Buttons -->
+      <div class="flex flex-col sm:flex-row gap-4 justify-center mb-8 animate-fade-in-up animation-delay-400">
+        <a routerLink="/register" class="bg-gradient-to-r from-blue-600 to-emerald-500 text-white font-bold text-lg px-8 py-4 rounded-xl hover:from-blue-700 hover:to-emerald-600 transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl">
+          Essai Gratuit →
+        </a>
+        <a href="#demo" class="bg-white text-gray-700 font-bold text-lg px-8 py-4 rounded-xl border-2 border-gray-300 hover:border-gray-400 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
+          Voir la Démo
+        </a>
+      </div>
+      
+      <!-- Trust indicators -->
+      <p class="text-sm text-gray-500 animate-fade-in-up animation-delay-600">
+        Aucune carte bancaire requise • 14 jours d'essai gratuit • Support 24/7
+      </p>
     </div>
   </section>
 
-  <!-- Stats -->
-  <div class="grid grid-cols-4 border-t border-b border-gray-200 mx-8 mb-10">
-    <div class="bg-white text-center py-5 border-r border-gray-200">
-      <p class="text-2xl font-extrabold text-blue-700">15+</p>
-      <p class="text-xs font-medium text-gray-400 uppercase tracking-widest mt-1">Modules métier</p>
-    </div>
-    <div class="bg-white text-center py-5 border-r border-gray-200">
-      <p class="text-2xl font-extrabold text-blue-700">7</p>
-      <p class="text-xs font-medium text-gray-400 uppercase tracking-widest mt-1">Rôles utilisateurs</p>
-    </div>
-    <div class="bg-white text-center py-5 border-r border-gray-200">
-      <p class="text-2xl font-extrabold text-blue-700">GNF</p>
-      <p class="text-xs font-medium text-gray-400 uppercase tracking-widest mt-1">Multi-devises</p>
-    </div>
-    <div class="bg-white text-center py-5">
-      <p class="text-2xl font-extrabold text-blue-700">SaaS</p>
-      <p class="text-xs font-medium text-gray-400 uppercase tracking-widest mt-1">Multi-entreprises</p>
-    </div>
-  </div>
+  <!-- Why Choose Section -->
+  <section class="py-20 lg:py-32 bg-white">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="grid lg:grid-cols-2 gap-16 items-center">
+        <!-- Left Content -->
+        <div>
+          <h2 class="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+            Pourquoi Choisir EnterpriseHub ?
+          </h2>
+          <p class="text-xl text-gray-600 mb-8 leading-relaxed">
+            Notre plateforme ERP complète offre tout ce dont votre entreprise a besoin pour prospérer dans l'environnement concurrentiel d'aujourd'hui. Des fonctionnalités puissantes, une interface intuitive et une scalabilité illimitée.
+          </p>
+          
+          <!-- Benefits List -->
+          <div class="space-y-4 mb-10">
+            <div class="flex items-start gap-3">
+              <div class="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                </svg>
+              </div>
+              <p class="text-gray-700 font-medium">Interface intuitive et facile à utiliser</p>
+            </div>
+            <div class="flex items-start gap-3">
+              <div class="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                </svg>
+              </div>
+              <p class="text-gray-700 font-medium">Déploiement rapide en quelques heures</p>
+            </div>
+            <div class="flex items-start gap-3">
+              <div class="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                </svg>
+              </div>
+              <p class="text-gray-700 font-medium">Support client 24/7 dans votre langue</p>
+            </div>
+            <div class="flex items-start gap-3">
+              <div class="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                </svg>
+              </div>
+              <p class="text-gray-700 font-medium">Mises à jour automatiques et gratuites</p>
+            </div>
+            <div class="flex items-start gap-3">
+              <div class="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                </svg>
+              </div>
+              <p class="text-gray-700 font-medium">Sécurité des données de niveau bancaire</p>
+            </div>
+            <div class="flex items-start gap-3">
+              <div class="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                </svg>
+              </div>
+              <p class="text-gray-700 font-medium">Intégration avec vos outils existants</p>
+            </div>
+          </div>
 
-  <!-- Modules -->
-  <div class="px-8 pb-10">
-    <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">// Modules disponibles</p>
-    <div class="grid grid-cols-3 gap-3">
-      <div class="bg-white border border-gray-200 rounded-xl p-5 hover:border-blue-400 transition-colors cursor-pointer">
-        <div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center text-base mb-3">📦</div>
-        <p class="text-sm font-bold text-gray-900">Stocks & Produits</p>
-        <p class="text-xs text-gray-400 mt-1 leading-relaxed">Gestion multi-dépôts, FIFO/FEFO, transferts inter-sites</p>
-        <span class="inline-block mt-3 text-xs font-bold bg-blue-50 text-blue-700 px-2 py-0.5 rounded">Core</span>
-      </div>
-      <div class="bg-white border border-gray-200 rounded-xl p-5 hover:border-blue-400 transition-colors cursor-pointer">
-        <div class="w-9 h-9 bg-emerald-50 rounded-lg flex items-center justify-center text-base mb-3">💰</div>
-        <p class="text-sm font-bold text-gray-900">Finance & Caisses</p>
-        <p class="text-xs text-gray-400 mt-1 leading-relaxed">Hiérarchie 4 niveaux, Orange Money, MTN Money</p>
-        <span class="inline-block mt-3 text-xs font-bold bg-blue-50 text-blue-700 px-2 py-0.5 rounded">Core</span>
-      </div>
-      <div class="bg-white border border-gray-200 rounded-xl p-5 hover:border-blue-400 transition-colors cursor-pointer">
-        <div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center text-base mb-3">🚛</div>
-        <p class="text-sm font-bold text-gray-900">Logistique & Flotte</p>
-        <p class="text-xs text-gray-400 mt-1 leading-relaxed">GPS temps réel, QR missions, signature numérique</p>
-        <span class="inline-block mt-3 text-xs font-bold bg-blue-50 text-blue-700 px-2 py-0.5 rounded">Core</span>
-      </div>
-      <div class="bg-white border border-gray-200 rounded-xl p-5 hover:border-blue-400 transition-colors cursor-pointer">
-        <div class="w-9 h-9 bg-amber-50 rounded-lg flex items-center justify-center text-base mb-3">🛒</div>
-        <p class="text-sm font-bold text-gray-900">Ventes & Clients</p>
-        <p class="text-xs text-gray-400 mt-1 leading-relaxed">Factures PDF, devis, fidélité, TVA automatique</p>
-        <span class="inline-block mt-3 text-xs font-bold bg-blue-50 text-blue-700 px-2 py-0.5 rounded">Core</span>
-      </div>
-      <div class="bg-white border border-gray-200 rounded-xl p-5 hover:border-blue-400 transition-colors cursor-pointer">
-        <div class="w-9 h-9 bg-emerald-50 rounded-lg flex items-center justify-center text-base mb-3">👥</div>
-        <p class="text-sm font-bold text-gray-900">Ressources Humaines</p>
-        <p class="text-xs text-gray-400 mt-1 leading-relaxed">Présences, congés, affectations inter-dépôts</p>
-        <span class="inline-block mt-3 text-xs font-bold bg-blue-50 text-blue-700 px-2 py-0.5 rounded">Core</span>
-      </div>
-      <div class="bg-white border border-gray-200 rounded-xl p-5 hover:border-blue-400 transition-colors cursor-pointer">
-        <div class="w-9 h-9 bg-amber-50 rounded-lg flex items-center justify-center text-base mb-3">🤖</div>
-        <p class="text-sm font-bold text-gray-900">Intelligence Artificielle</p>
-        <p class="text-xs text-gray-400 mt-1 leading-relaxed">Prévisions ventes, détection anomalies, réappro auto</p>
-        <span class="inline-block mt-3 text-xs font-bold bg-amber-50 text-amber-800 px-2 py-0.5 rounded">Optionnel</span>
-      </div>
-    </div>
-  </div>
+          <!-- CTA Button -->
+          <a href="#pricing" class="inline-flex items-center bg-gradient-to-r from-blue-600 to-emerald-500 text-white font-bold text-lg px-8 py-4 rounded-xl hover:from-blue-700 hover:to-emerald-600 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
+            Voir les Tarifs
+            <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+            </svg>
+          </a>
+        </div>
 
-  <!-- CTA -->
-  <div class="mx-8 mb-10 bg-blue-700 rounded-2xl p-8 flex items-center justify-between gap-4 flex-wrap">
-    <div>
-      <h3 class="text-lg font-bold text-white mb-1">Prêt à centraliser vos opérations ?</h3>
-      <p class="text-sm text-blue-200">Connectez-vous pour accéder à votre espace entreprise.</p>
+        <!-- Right Stats -->
+        <div class="relative">
+          <!-- Background decoration -->
+          <div class="absolute inset-0 bg-gradient-to-br from-blue-50 to-emerald-50 rounded-3xl"></div>
+          
+          <!-- Stats Cards -->
+          <div class="relative grid grid-cols-2 gap-6">
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+              <div class="text-3xl font-bold text-blue-600 mb-2">500+</div>
+              <div class="text-gray-600 font-medium">Entreprises Actives</div>
+            </div>
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+              <div class="text-3xl font-bold text-emerald-600 mb-2">99.9%</div>
+              <div class="text-gray-600 font-medium">Disponibilité</div>
+            </div>
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+              <div class="text-3xl font-bold text-purple-600 mb-2">24/7</div>
+              <div class="text-gray-600 font-medium">Support</div>
+            </div>
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+              <div class="text-3xl font-bold text-orange-600 mb-2">50+</div>
+              <div class="text-gray-600 font-medium">Intégrations</div>
+            </div>
+          </div>
+
+          <!-- Floating Icon -->
+          <div class="absolute -top-4 -right-4 w-20 h-20 bg-gradient-to-br from-blue-600 to-emerald-500 rounded-2xl flex items-center justify-center shadow-xl">
+            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+        </div>
+      </div>
     </div>
-    <a routerLink="/login" class="bg-white text-blue-700 font-bold text-sm px-6 py-3 rounded-lg hover:bg-blue-50 transition-colors whitespace-nowrap">
-      Se connecter →
-    </a>
-  </div>
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" class="py-20 lg:py-32">
+    <div class="max-w-6xl mx-auto px-6">
+      <!-- Section Header -->
+      <div class="text-center mb-16">
+        <h2 class="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+          Tout ce dont Votre Entreprise a Besoin
+        </h2>
+        <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+          Modules puissants conçus pour fonctionner ensemble de manière transparente
+        </p>
+      </div>
+
+      <!-- Features Grid -->
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Feature 1 -->
+        <div class="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
+          <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-3">Stocks & Entrepôts</h3>
+          <p class="text-gray-600 leading-relaxed">Gestion complète des stocks sur plusieurs sites avec suivi en temps réel et alertes automatiques.</p>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
+          <div class="w-14 h-14 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-3">Ventes & Clients</h3>
+          <p class="text-gray-600 leading-relaxed">Gestion des ventes, facturation automatique et suivi client avec CRM intégré.</p>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
+          <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-3">Gestion Financière</h3>
+          <p class="text-gray-600 leading-relaxed">Comptabilité complète, gestion multi-devises et rapports financiers automatisés.</p>
+        </div>
+
+        <!-- Feature 4 -->
+        <div class="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
+          <div class="w-14 h-14 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-3">Logistique GPS</h3>
+          <p class="text-gray-600 leading-relaxed">Suivi GPS en temps réel, optimisation des tournées et gestion de flotte.</p>
+        </div>
+
+        <!-- Feature 5 -->
+        <div class="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
+          <div class="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-3">Gestion RH</h3>
+          <p class="text-gray-600 leading-relaxed">Gestion des employés, congés, paies et évaluations de performance.</p>
+        </div>
+
+        <!-- Feature 6 -->
+        <div class="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
+          <div class="w-14 h-14 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-3">Gestion Documentaire</h3>
+          <p class="text-gray-600 leading-relaxed">Archivage numérique, workflow de validation et recherche intelligente.</p>
+        </div>
+      </div>
+
+      <!-- CTA Link -->
+      <div class="text-center mt-12">
+        <a href="#all-features" class="inline-flex items-center text-blue-600 font-semibold text-lg hover:text-blue-700 transition-colors group">
+          Découvrir toutes les fonctionnalités
+          <svg class="w-5 h-5 ml-2 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Section -->
+
+
+  <!-- Final CTA Section -->
+  <section class="py-20 lg:py-32">
+    <div class="max-w-4xl mx-auto px-6 text-center">
+      <h2 class="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+        Prêt à Transformer Votre Entreprise ?
+      </h2>
+      <p class="text-xl text-gray-600 mb-10">
+        Rejoignez des centaines d'entreprises qui utilisent déjà EnterpriseHub pour optimiser leurs opérations
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a routerLink="/register" class="bg-gradient-to-r from-blue-600 to-emerald-500 text-white font-bold text-lg px-8 py-4 rounded-xl hover:from-blue-700 hover:to-emerald-600 transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl">
+          Commencer l'Essai Gratuit
+        </a>
+        <a routerLink="/login" class="bg-white text-gray-700 font-bold text-lg px-8 py-4 rounded-xl border-2 border-gray-300 hover:border-gray-400 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
+          Se Connecter
+        </a>
+      </div>
+    </div>
+  </section>
 
   <app-footer />
 </div>
+
+<!-- Custom animations -->
+<style>
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in-down {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.8s ease-out forwards;
+  opacity: 0;
+}
+
+.animate-fade-in-down {
+  animation: fade-in-down 0.8s ease-out forwards;
+  opacity: 0;
+}
+
+.animation-delay-200 {
+  animation-delay: 0.2s;
+}
+
+.animation-delay-400 {
+  animation-delay: 0.4s;
+}
+
+.animation-delay-600 {
+  animation-delay: 0.6s;
+}
+</style>

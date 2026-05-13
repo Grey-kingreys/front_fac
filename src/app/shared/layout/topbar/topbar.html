@@ -1,25 +1,82 @@
-<nav class="bg-white border-b border-gray-200 sticky top-0 z-50">
-  <div class="max-w-7xl mx-auto px-6 h-15 flex items-center justify-between">
+<nav class="bg-white border-b border-gray-200 sticky top-0 z-50 backdrop-blur-lg bg-opacity-90">
+  <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
 
     <!-- Brand -->
     <div class="flex items-center gap-3">
-      <div class="w-9 h-9 bg-blue-700 rounded-lg flex items-center justify-center">
-        <svg class="w-5 h-5 text-white fill-white" viewBox="0 0 24 24">
-          <path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/>
-        </svg>
-      </div>
-      <span class="text-sm font-bold tracking-tight">
-        Gestion<span class="text-blue-700">Multi</span>Sites
+      <img src="/dj.jpeg" alt="DjoulaGest Logo" class="w-10 h-10 object-contain transform hover:scale-105 transition-transform duration-200">
+      <span class="text-lg font-bold tracking-tight">
+        Djoula<span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-emerald-500">Gest</span>
       </span>
-      <span class="font-mono text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">v1.0</span>
     </div>
 
-    <!-- Links -->
-    <div class="flex items-center gap-1">
-      <a routerLink="/features" class="text-sm font-medium text-gray-600 px-3 py-2 rounded-lg hover:bg-blue-50 hover:text-blue-700 transition-colors">Fonctionnalités</a>
-      <a routerLink="/modules"  class="text-sm font-medium text-gray-600 px-3 py-2 rounded-lg hover:bg-blue-50 hover:text-blue-700 transition-colors">Modules</a>
-      <a routerLink="/login"    class="ml-2 bg-blue-700 text-white text-sm font-semibold px-5 py-2 rounded-lg hover:bg-blue-800 transition-colors">Se connecter</a>
+    <!-- Desktop Navigation Links -->
+    <div class="hidden md:flex items-center gap-1">
+      <a href="#features" class="text-sm font-medium text-gray-600 px-4 py-2 rounded-lg hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 hover:scale-105">Fonctionnalités</a>
+      <a href="#pricing" class="text-sm font-medium text-gray-600 px-4 py-2 rounded-lg hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 hover:scale-105">Tarifs</a>
+      <a routerLink="/dashboard" class="text-sm font-medium text-gray-600 px-4 py-2 rounded-lg hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 hover:scale-105">Tableau de bord</a>
     </div>
 
+    <!-- Desktop CTA Buttons -->
+    <div class="hidden md:flex items-center gap-3">
+      <a routerLink="/login" class="text-sm font-semibold text-blue-600 px-5 py-2.5 rounded-lg border-2 border-blue-600 hover:bg-blue-50 transition-all duration-200 hover:scale-105">Se connecter</a>
+      <a routerLink="/register" class="bg-gradient-to-r from-blue-600 to-emerald-500 text-white text-sm font-semibold px-5 py-2.5 rounded-lg hover:from-blue-700 hover:to-emerald-600 transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl">Commencer</a>
+    </div>
+
+    <!-- Mobile menu button -->
+    <button 
+      (click)="toggleMobileMenu()" 
+      class="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+      [attr.aria-expanded]="isMobileMenuOpen"
+      aria-label="Toggle mobile menu">
+      <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
+
+  </div>
+
+  <!-- Mobile Menu -->
+  <div 
+    *ngIf="isMobileMenuOpen"
+    class="md:hidden absolute top-16 left-0 right-0 bg-white border-b border-gray-200 shadow-lg"
+    [@slideDown]>
+    
+    <div class="px-6 py-4 space-y-2">
+      <!-- Mobile Navigation Links -->
+      <a 
+        href="#features" 
+        (click)="closeMobileMenu()"
+        class="block text-sm font-medium text-gray-600 px-4 py-3 rounded-lg hover:bg-blue-50 hover:text-blue-700 transition-colors">
+        Fonctionnalités
+      </a>
+      <a 
+        href="#pricing" 
+        (click)="closeMobileMenu()"
+        class="block text-sm font-medium text-gray-600 px-4 py-3 rounded-lg hover:bg-blue-50 hover:text-blue-700 transition-colors">
+        Tarifs
+      </a>
+      <a 
+        routerLink="/dashboard" 
+        (click)="closeMobileMenu()"
+        class="block text-sm font-medium text-gray-600 px-4 py-3 rounded-lg hover:bg-blue-50 hover:text-blue-700 transition-colors">
+        Tableau de bord
+      </a>
+      
+      <!-- Mobile CTA Buttons -->
+      <div class="pt-4 border-t border-gray-200 space-y-2">
+        <a 
+          routerLink="/login" 
+          (click)="closeMobileMenu()"
+          class="block w-full text-sm font-semibold text-blue-600 px-5 py-3 rounded-lg border-2 border-blue-600 hover:bg-blue-50 transition-colors text-center">
+          Se connecter
+        </a>
+        <a 
+          routerLink="/register" 
+          (click)="closeMobileMenu()"
+          class="block w-full bg-gradient-to-r from-blue-600 to-emerald-500 text-white text-sm font-semibold px-5 py-3 rounded-lg hover:from-blue-700 hover:to-emerald-600 transition-all duration-200 text-center shadow-lg">
+          Commencer
+        </a>
+      </div>
+    </div>
   </div>
 </nav>
