@@ -1,91 +1,174 @@
-<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-  <div class="w-full max-w-md">
-    <div class="bg-white rounded-lg shadow-xl p-8">
-      <div class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-gray-900">Connexion</h1>
-        <p class="text-gray-600 mt-2">Gestion Multi-Sites</p>
-      </div>
+<div class="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 via-white to-emerald-50">
+  <!-- Mobile: Logo & Brand (visible only on small screens) -->
+  <div class="lg:hidden pt-8 px-4 text-center">
+    <a routerLink="/" class="flex items-center justify-center gap-2 mb-4 hover:opacity-80 transition-opacity duration-200 cursor-pointer">
+      <img src="/dj.png" alt="DjoulaGest Logo" class="w-12 h-12 object-contain">
+      <span class="text-2xl font-bold tracking-tight">
+        Djoula<span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-emerald-500">Gest</span>
+      </span>
+    </a>
+    <p class="text-gray-600 text-sm">Gestion intégrée multi-sites</p>
+  </div>
 
-      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
-        <!-- Email -->
-        <div>
-          <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
-            Email
-          </label>
-          <input
-            id="email"
-            type="email"
-            formControlName="email"
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition"
-            [class.border-red-500]="submitted() && f['email'].errors"
-            placeholder="votre@email.com"
-          />
-          @if (submitted() && f['email'].errors) {
-            <div class="text-red-500 text-sm mt-1">
-              @if (f['email'].errors['required']) {
-                <span>L'email est requis</span>
-              }
-              @if (f['email'].errors['email']) {
-                <span>Email invalide</span>
-              }
+  <!-- Main Content -->
+  <div class="flex-1 flex items-center justify-center p-4">
+    <div class="w-full max-w-6xl">
+      <!-- Layout: Desktop (flex-row) / Mobile (flex-col) -->
+      <div class="flex flex-col lg:flex-row gap-12 items-center">
+        
+        <!-- Left Side: Brand & Features (Desktop only) -->
+        <div class="w-full lg:w-1/2 hidden lg:flex flex-col justify-center">
+          <!-- Brand -->
+          <a routerLink="/" class="mb-12 flex items-center gap-3 hover:opacity-80 transition-opacity duration-200 cursor-pointer">
+            <img src="/dj.png" alt="DjoulaGest Logo" class="w-16 h-16 object-contain">
+            <div>
+              <h1 class="text-4xl font-bold tracking-tight">
+                Djoula<span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-emerald-500">Gest</span>
+              </h1>
+              <p class="text-gray-600 text-sm mt-1">Gestion intégrée multi-sites</p>
             </div>
-          }
-        </div>
+          </a>
 
-        <!-- Password -->
-        <div>
-          <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
-            Mot de passe
-          </label>
-          <input
-            id="password"
-            type="password"
-            formControlName="password"
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition"
-            [class.border-red-500]="submitted() && f['password'].errors"
-            placeholder="••••••••"
-          />
-          @if (submitted() && f['password'].errors) {
-            <div class="text-red-500 text-sm mt-1">
-              @if (f['password'].errors['required']) {
-                <span>Le mot de passe est requis</span>
-              }
-              @if (f['password'].errors['minlength']) {
-                <span>Minimum 6 caractères</span>
-              }
-            </div>
-          }
-        </div>
-
-        <!-- Error Message -->
-        @if (error()) {
-          <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-            {{ error() }}
-          </div>
-        }
-
-        <!-- Submit Button -->
-        <button
-          type="submit"
-          [disabled]="loading()"
-          class="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 text-white font-medium py-2 px-4 rounded-lg transition duration-200"
-        >
-          @if (!loading()) {
-            <span>Se connecter</span>
-          } @else {
-            <span class="flex items-center justify-center">
-              <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          <!-- Description -->
+          <p class="text-xl text-gray-700 mb-8 leading-relaxed max-w-md">
+            Bienvenue sur votre plateforme de gestion intégrée. Connectez-vous pour accéder à tous vos sites et dépôts.
+          </p>
+          
+          <!-- Features List -->
+          <div class="space-y-4">
+            <div class="flex items-start gap-3">
+              <svg class="w-6 h-6 text-emerald-500 flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
               </svg>
-              Connexion en cours...
-            </span>
-          }
-        </button>
-      </form>
+              <span class="text-gray-700">Gestion centralisée de vos sites</span>
+            </div>
+            <div class="flex items-start gap-3">
+              <svg class="w-6 h-6 text-emerald-500 flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+              </svg>
+              <span class="text-gray-700">Accès sécurisé et contrôlé</span>
+            </div>
+            <div class="flex items-start gap-3">
+              <svg class="w-6 h-6 text-emerald-500 flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+              </svg>
+              <span class="text-gray-700">Suivi en temps réel</span>
+            </div>
+          </div>
+        </div>
 
-      <div class="mt-6 text-center text-sm text-gray-600">
-        <p>Besoin d'aide? <a href="#" class="text-indigo-600 hover:text-indigo-700 font-medium">Contactez le support</a></p>
+        <!-- Right Side: Login Form -->
+        <div class="w-full lg:w-1/2 flex items-center justify-center">
+          <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+            <h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">Connexion</h2>
+
+            <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
+              <!-- Email -->
+              <div>
+                <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+                  Email
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  formControlName="email"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                  [class.border-red-500]="submitted() && f['email'].errors"
+                  placeholder="votre@email.com"
+                />
+                @if (submitted() && f['email'].errors) {
+                  <div class="text-red-500 text-sm mt-1">
+                    @if (f['email'].errors['required']) {
+                      <span>L'email est requis</span>
+                    }
+                    @if (f['email'].errors['email']) {
+                      <span>Email invalide</span>
+                    }
+                  </div>
+                }
+              </div>
+
+              <!-- Password -->
+              <div>
+                <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+                  Mot de passe
+                </label>
+                <div class="relative">
+                  <input
+                    id="password"
+                    [type]="showPassword() ? 'text' : 'password'"
+                    formControlName="password"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition pr-10"
+                    [class.border-red-500]="submitted() && f['password'].errors"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    (click)="togglePasswordVisibility()"
+                    class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-900 focus:outline-none"
+                    [attr.aria-label]="showPassword() ? 'Masquer le mot de passe' : 'Afficher le mot de passe'"
+                  >
+                    @if (showPassword()) {
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-4.803m5.596-3.856a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                      </svg>
+                    } @else {
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                      </svg>
+                    }
+                  </button>
+                </div>
+                @if (submitted() && f['password'].errors) {
+                  <div class="text-red-500 text-sm mt-1">
+                    @if (f['password'].errors['required']) {
+                      <span>Le mot de passe est requis</span>
+                    }
+                    @if (f['password'].errors['minlength']) {
+                      <span>Minimum 6 caractères</span>
+                    }
+                  </div>
+                }
+              </div>
+
+              <!-- Error Message -->
+              @if (error()) {
+                <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                  {{ error() }}
+                </div>
+              }
+
+              <!-- Submit Button -->
+              <button
+                type="submit"
+                [disabled]="loading()"
+                class="w-full bg-gradient-to-r from-blue-600 to-emerald-500 hover:from-blue-700 hover:to-emerald-600 disabled:bg-gray-400 text-white font-semibold py-2.5 px-4 rounded-lg transition duration-200 shadow-lg hover:shadow-xl"
+              >
+                @if (!loading()) {
+                  <span>Se connecter</span>
+                } @else {
+                  <span class="flex items-center justify-center">
+                    <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Connexion en cours...
+                  </span>
+                }
+              </button>
+            </form>
+
+            <div class="mt-6 space-y-4">
+              <div class="text-center text-sm">
+                <a routerLink="/forgot-password" class="text-blue-600 hover:text-blue-700 font-medium">Mot de passe oublié ?</a>
+              </div>
+              <div class="text-center text-sm text-gray-600">
+                <p>Besoin d'aide? <a href="#" class="text-blue-600 hover:text-blue-700 font-medium">Contactez le support</a></p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>

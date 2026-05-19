@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { StorageService } from './storage';
+import { environment } from '../../../environments/environment';
 
 export interface LoginRequest {
   email: string;
@@ -10,18 +11,18 @@ export interface LoginRequest {
 }
 
 export interface LoginResponse {
-  access_token: string;
-  refresh_token: string;
+  access: string;
+  refresh: string;
   user: CurrentUser;
 }
 
 export interface RefreshTokenRequest {
-  refresh_token: string;
+  refresh: string;
 }
 
 export interface RefreshTokenResponse {
-  access_token: string;
-  refresh_token: string;
+  access: string;
+  refresh: string;
 }
 
 export interface CurrentUser {
@@ -30,16 +31,10 @@ export interface CurrentUser {
   first_name: string;
   last_name: string;
   role: string;
-  company?: {
-    id: number;
-    name: string;
-  };
-  depot?: {
-    id: number;
-    name: string;
-  };
+  company_id?: number | null;
+  depot_id?: number | null;
+  avatar?: string | null;
   is_active: boolean;
-  is_superadmin: boolean;
 }
 
 @Injectable({
@@ -49,7 +44,7 @@ export class AuthService {
   private http = inject(HttpClient);
   private storage = inject(StorageService);
 
-  private readonly API_URL = '/api/auth';
+  private readonly API_URL = `${environment.apiUrl}/auth`;
   private readonly ACCESS_TOKEN_KEY = 'access_token';
   private readonly REFRESH_TOKEN_KEY = 'refresh_token';
   private readonly CURRENT_USER_KEY = 'current_user';
@@ -76,7 +71,7 @@ export class AuthService {
   login(credentials: LoginRequest): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.API_URL}/login/`, credentials).pipe(
       tap(response => {
-        this.setTokens(response.access_token, response.refresh_token);
+        this.setTokens(response.access, response.refresh);
         this.setCurrentUser(response.user);
         this.isLoggedInSignal.set(true);
         this.scheduleTokenRefresh();
@@ -113,10 +108,10 @@ export class AuthService {
     }
 
     return this.http.post<RefreshTokenResponse>(`${this.API_URL}/refresh/`, {
-      refresh_token: refreshToken,
+      refresh: refreshToken,
     }).pipe(
       tap(response => {
-        this.setTokens(response.access_token, response.refresh_token);
+        this.setTokens(response.access, response.refresh);
         this.scheduleTokenRefresh();
       }),
       catchError(error => {
