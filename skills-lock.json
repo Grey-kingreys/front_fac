@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "angular-best-practices": {
+      "source": "boise-state-development/agentcore-public-stack",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/angualar-best-practices/SKILL.md",
+      "computedHash": "96dfa8e20a1059a26b4a154d1fe93a520fba08f5d3b1ff5e135738b92a1dbc14"
+    }
+  }
+}
