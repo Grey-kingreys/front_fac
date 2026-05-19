@@ -22,7 +22,7 @@ export class Login {
   loading = signal(false);
   submitted = signal(false);
   error = signal<string | null>(null);
-  returnUrl = signal('/');
+  returnUrl = signal('/dashboard');
   showPassword = signal(false);
 
   constructor() {
@@ -31,7 +31,7 @@ export class Login {
       password: ['', [Validators.required, Validators.minLength(6)]],
     });
 
-    this.returnUrl.set(this.route.snapshot.queryParams['returnUrl'] || '/');
+    this.returnUrl.set(this.route.snapshot.queryParams['returnUrl'] || '/dashboard');
 
     if (this.authService.isLoggedInValue()) {
       this.router.navigate([this.returnUrl()]);

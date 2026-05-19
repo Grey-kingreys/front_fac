@@ -1,12 +1,21 @@
-import { Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { Topbar } from '../../shared/layout/topbar/topbar';
-import { Footer } from '../../shared/layout/footer/footer';
+import { Component, inject } from '@angular/core';
+import { RouterLink, Router } from '@angular/router';
+import { AuthService } from '../../core/services/auth';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [RouterLink, Topbar, Footer],
+  imports: [RouterLink],
   templateUrl: './dashboard.html',
 })
-export class Dashboard { }
+export class Dashboard {
+  private authService = inject(AuthService);
+  private router = inject(Router);
+
+  currentUser = this.authService.currentUser;
+
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
+  }
+}
