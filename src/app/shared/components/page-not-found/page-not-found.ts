@@ -3,10 +3,10 @@ import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-forbidden',
+  selector: 'app-page-not-found',
   standalone: true,
   imports: [RouterLink, CommonModule],
-  templateUrl: './forbidden.html',
-  styleUrl: './forbidden.css',
+  templateUrl: './page-not-found.html',
+  styleUrl: './page-not-found.css',
 })
-export class Forbidden {}
+export class PageNotFound {}
