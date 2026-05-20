@@ -1,17 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { Router, ActivatedRoute } from '@angular/router';
-import { of } from 'rxjs';
 
-import { Login } from './login';
+import { ForgotPassword } from './forgot-password';
 
-describe('Login', () => {
-  let component: Login;
-  let fixture: ComponentFixture<Login>;
+describe('ForgotPassword', () => {
+  let component: ForgotPassword;
+  let fixture: ComponentFixture<ForgotPassword>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Login, HttpClientTestingModule],
+      imports: [ForgotPassword, HttpClientTestingModule],
       providers: [
         {
           provide: Router,
@@ -19,7 +18,6 @@ describe('Login', () => {
             navigate: jasmine.createSpy('navigate'),
             createUrlTree: jasmine.createSpy('createUrlTree').and.returnValue({}),
             serializeUrl: jasmine.createSpy('serializeUrl').and.returnValue(''),
-            events: of(),
           },
         },
         {
@@ -30,9 +28,8 @@ describe('Login', () => {
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(Login);
+    fixture = TestBed.createComponent(ForgotPassword);
     component = fixture.componentInstance;
-    fixture.detectChanges();
   });
 
   it('should create', () => {
