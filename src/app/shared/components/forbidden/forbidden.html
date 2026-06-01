@@ -1,1 +1,11 @@
-<p>forbidden works!</p>
+<div class="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-16">
+  <div class="max-w-xl w-full rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-sm">
+    <p class="text-sm font-semibold uppercase tracking-[0.3em] text-red-600">403 — Accès refusé</p>
+    <h1 class="mt-6 text-5xl font-bold text-slate-900">Accès interdit</h1>
+    <p class="mt-4 text-base leading-7 text-slate-600">Vous n’êtes pas autorisé à accéder à cette section. Vérifiez votre rôle ou contactez l’administrateur.</p>
+    <div class="mt-8 flex justify-center gap-3">
+      <a routerLink="/app/dashboard" class="rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-blue-700">Retour au tableau de bord</a>
+      <a routerLink="/login" class="rounded-lg border border-slate-200 px-6 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition">Se déconnecter</a>
+    </div>
+  </div>
+</div>
