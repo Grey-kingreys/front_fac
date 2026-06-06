@@ -1,20 +1,20 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { Sidebar } from '../sidebar/sidebar';
 import { AuthenticatedTopbar } from '../authenticated-topbar/authenticated-topbar';
-import { CommonModule } from '@angular/common';
+import { Toast } from '../../ui-kit/toast/toast';
 
 @Component({
   selector: 'app-app-layout',
   standalone: true,
-  imports: [RouterOutlet, Sidebar, AuthenticatedTopbar, CommonModule],
+  imports: [RouterOutlet, Sidebar, AuthenticatedTopbar, Toast],
   templateUrl: './app-layout.html',
   styleUrl: './app-layout.css',
 })
 export class AppLayout {
-  isSidebarCollapsed = false;
+  sidebarCollapsed = signal(false);
 
-  toggleSidebar(): void {
-    this.isSidebarCollapsed = !this.isSidebarCollapsed;
+  onSidebarCollapsed(collapsed: boolean): void {
+    this.sidebarCollapsed.set(collapsed);
   }
 }

@@ -31,10 +31,13 @@ export interface CurrentUser {
   first_name: string;
   last_name: string;
   role: string;
-  company_id?: number | null;
-  depot_id?: number | null;
-  avatar?: string | null;
   is_active: boolean;
+  company_id?: number | null;
+  company_name?: string | null;
+  depot_id?: number | null;
+  depot_name?: string | null;
+  avatar_url?: string | null;
+  phone?: string;
 }
 
 @Injectable({
@@ -55,6 +58,12 @@ export class AuthService {
 
   private isLoggedInSignal = signal<boolean>(this.hasValidToken());
   public isLoggedIn = this.isLoggedInSignal.asReadonly();
+
+  // ── Simulation de rôle (SuperAdmin uniquement) ───────────────────────────────
+  private realUserSignal = signal<CurrentUser | null>(null);
+  public realUser = this.realUserSignal.asReadonly();
+  public isSimulating = computed(() => this.realUserSignal() !== null);
+  public simulatedAs = computed(() => this.isSimulating() ? this.currentUserSignal() : null);
 
   private refreshTokenTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -119,6 +128,34 @@ export class AuthService {
         return throwError(() => error);
       })
     );
+  }
+
+  // ── Simulation (SuperAdmin only) ─────────────────────────────────────────────
+  simulateUser(user: CurrentUser): void {
+    if (!this.realUserSignal()) {
+      this.realUserSignal.set(this.currentUserSignal());
+    }
+    this.currentUserSignal.set(user);
+  }
+
+  stopSimulation(): void {
+    const real = this.realUserSignal();
+    if (real) {
+      this.currentUserSignal.set(real);
+      this.realUserSignal.set(null);
+    }
+  }
+
+  updateProfile(data: { first_name?: string; last_name?: string; phone?: string }): Observable<CurrentUser> {
+    return this.http.patch<CurrentUser>(`${this.API_URL}/me/`, data).pipe(
+      tap(updatedUser => {
+        this.setCurrentUser(updatedUser);
+      })
+    );
+  }
+
+  changePassword(data: { current_password: string; new_password: string; new_password_confirm: string }): Observable<{ detail: string }> {
+    return this.http.post<{ detail: string }>(`${this.API_URL}/me/change-password/`, data);
   }
 
   getCurrentUser(): CurrentUser | null {

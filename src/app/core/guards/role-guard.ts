@@ -16,7 +16,7 @@ export const roleGuard: CanActivateFn = (route, state) => {
   const currentUser = authService.getCurrentUser();
 
   if (!currentUser || !requiredRoles.includes(currentUser.role)) {
-    router.navigate(['/app/forbidden']);
+    router.navigate(['/forbidden']);
     return false;
   }
 

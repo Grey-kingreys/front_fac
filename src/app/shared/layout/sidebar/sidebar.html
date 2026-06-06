@@ -1,47 +1,140 @@
-<div
-  class="fixed inset-y-0 left-0 z-40 w-72 overflow-y-auto border-r border-slate-200 bg-white transition-transform duration-300 ease-in-out md:static md:translate-x-0"
-  [class.-translate-x-full]="collapsed"
-  [class.translate-x-0]="!collapsed"
+<!-- Sidebar Container -->
+<aside
+  class="fixed inset-y-0 left-0 z-50 flex flex-col bg-white border-r border-slate-200 transition-all duration-300 ease-in-out overflow-hidden"
+  [ngClass]="isCollapsed() ? 'w-[72px]' : 'w-[280px]'"
 >
-  <div class="flex items-center justify-between px-5 py-4 border-b border-slate-200">
-    <div>
-      <p class="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Menu</p>
-      <h2 class="mt-1 text-xl font-semibold text-slate-900">Application</h2>
-    </div>
-    <button
-      type="button"
-      class="md:hidden rounded-lg p-2 text-slate-600 hover:bg-slate-100"
-      aria-label="Fermer le menu"
-      (click)="onToggle()"
-    >
-      <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-      </svg>
-    </button>
+
+  <!-- ========== HEADER : Logo + bouton plier (seulement quand déplié) ========== -->
+  <div class="flex items-center h-16 px-3 border-b border-slate-200 shrink-0 gap-2">
+    @if (!isCollapsed()) {
+      <a routerLink="/dashboard" class="flex items-center gap-3 flex-1 min-w-0 hover:opacity-80 transition-opacity">
+        <img src="/dj.png" alt="DjoulaGest" class="w-9 h-9 object-contain shrink-0">
+        <span class="text-lg font-bold tracking-tight whitespace-nowrap">
+          Djoula<span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-emerald-500">Gest</span>
+        </span>
+      </a>
+      <!-- Bouton plier (visible seulement en mode étendu) -->
+      <button
+        type="button"
+        (click)="toggleCollapse()"
+        class="shrink-0 flex items-center justify-center w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors"
+        title="Plier"
+      >
+        <span [innerHTML]="getIcon('chevronsLeft')"></span>
+      </button>
+    } @else {
+      <!-- Logo seul, centré, sans bouton -->
+      <a routerLink="/" class="flex justify-center flex-1 hover:opacity-80 transition-opacity" title="DjoulaGest">
+        <img src="/dj.png" alt="DjoulaGest" class="w-9 h-9 object-contain">
+      </a>
+    }
   </div>
 
-  <nav class="px-2 py-4 space-y-1">
-    <a
-      *ngFor="let item of filteredNavItems"
-      [routerLink]="item.path"
-      routerLinkActive="bg-blue-50 text-blue-700"
-      [routerLinkActiveOptions]="{ exact: true }"
-      class="group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition"
-      (click)="onToggle()"
-    >
-      <span class="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-600 group-hover:bg-blue-50 group-hover:text-blue-600">
-        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="item.icon" />
-        </svg>
-      </span>
-      <span>{{ item.label }}</span>
-    </a>
+  <!-- ========== NAVIGATION (défilable) ========== -->
+  <nav class="flex-1 overflow-y-auto py-3 min-h-0" [ngClass]="isCollapsed() ? 'px-2' : 'px-3'">
+
+    @for (section of navSections; track section.label) {
+      @if (!isCollapsed()) {
+        <p class="px-3 pt-3 pb-1 text-[10px] font-semibold tracking-widest text-slate-400 uppercase first:pt-0">
+          {{ section.label }}
+        </p>
+      } @else {
+        <div class="my-2 border-t border-slate-100"></div>
+      }
+
+      @for (item of section.items; track item.path) {
+        <a
+          [routerLink]="item.path"
+          routerLinkActive
+          #rla="routerLinkActive"
+          [routerLinkActiveOptions]="{ exact: item.path === '/dashboard' }"
+          class="group flex items-center rounded-xl text-sm font-medium transition-all duration-200 mb-0.5"
+          [ngClass]="{
+            'gap-3 px-3 py-2.5': !isCollapsed(),
+            'justify-center p-2.5': isCollapsed(),
+            'bg-emerald-50 text-emerald-700 border border-emerald-100': rla.isActive,
+            'text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-transparent': !rla.isActive
+          }"
+          [title]="isCollapsed() ? item.label : ''"
+        >
+          <span
+            class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-all duration-200"
+            [ngClass]="{
+              'bg-white text-emerald-600 shadow-sm': rla.isActive,
+              'bg-slate-100 text-slate-500 group-hover:bg-white group-hover:shadow-sm group-hover:text-blue-600': !rla.isActive
+            }"
+          >
+            <span [innerHTML]="getIcon(item.icon)"></span>
+          </span>
+
+          @if (!isCollapsed()) {
+            <span class="truncate flex-1">{{ item.label }}</span>
+            <span
+              class="h-1.5 w-1.5 rounded-full bg-emerald-500 transition-opacity"
+              [ngClass]="rla.isActive ? 'opacity-100' : 'opacity-0'"
+            ></span>
+          }
+        </a>
+      }
+    }
+
+    @if (filteredNavItems.length === 0) {
+      <div class="px-3 py-8 text-center">
+        <p class="text-xs text-slate-400">Aucun menu</p>
+      </div>
+    }
   </nav>
 
-  <div class="mt-auto border-t border-slate-200 px-4 py-4">
-    <div class="text-xs uppercase tracking-[0.2em] text-slate-400">Connecté en tant que</div>
-    <div class="mt-3 text-sm font-semibold text-slate-900">{{ currentUser?.first_name || currentUser?.email }}</div>
-    <div class="text-xs text-slate-500">{{ currentUser?.role }}</div>
+  <!-- Séparateur bas -->
+  <div class="mx-3 border-t border-slate-100 shrink-0"></div>
+
+  <!-- ========== BAS : sécurité, thème, déconnexion (+ bouton déplier en mode réduit) ========== -->
+  <div class="shrink-0 py-3" [ngClass]="isCollapsed() ? 'px-2 space-y-1' : 'px-3 space-y-0.5'">
+
+    <!-- Sécurité -->
+    <button
+      type="button"
+      class="group w-full flex items-center rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+      [ngClass]="isCollapsed() ? 'justify-center p-2.5' : 'gap-3 px-3 py-2.5'"
+      [title]="isCollapsed() ? 'Sécurité' : ''"
+    >
+      <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-500 group-hover:text-blue-600 transition-colors">
+        <span [innerHTML]="getIcon('key')"></span>
+      </span>
+      @if (!isCollapsed()) { <span>Sécurité</span> }
+    </button>
+
+    <!-- Thème -->
+    <button
+      type="button"
+      (click)="toggleTheme()"
+      class="group w-full flex items-center rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+      [ngClass]="isCollapsed() ? 'justify-center p-2.5' : 'gap-3 px-3 py-2.5'"
+      [title]="isCollapsed() ? (isDarkTheme() ? 'Sombre' : 'Clair') : ''"
+    >
+      <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-500 group-hover:text-blue-600 transition-colors">
+        <span [innerHTML]="isDarkTheme() ? getIcon('moon') : getIcon('sun')"></span>
+      </span>
+      @if (!isCollapsed()) {
+        <span class="flex-1 text-left">Thème</span>
+        <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 group-hover:bg-slate-200 transition-colors">
+          {{ isDarkTheme() ? 'Sombre' : 'Clair' }}
+        </span>
+      }
+    </button>
+
+    <!-- Bouton déplier (visible seulement en mode réduit, tout en bas) -->
+    @if (isCollapsed()) {
+      <button
+        type="button"
+        (click)="toggleCollapse()"
+        class="w-full flex justify-center p-2.5 rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors"
+        title="Déplier"
+      >
+        <span [innerHTML]="getIcon('chevronsRight')"></span>
+      </button>
+    }
+
   </div>
-</div>
-<div *ngIf="!collapsed" class="fixed inset-0 z-30 bg-black/20 md:hidden" (click)="onToggle()"></div>
+
+</aside>

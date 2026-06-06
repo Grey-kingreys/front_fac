@@ -29,9 +29,15 @@
       
       <!-- CTA Buttons -->
       <div class="flex flex-col sm:flex-row gap-4 justify-center mb-8 animate-fade-in-up animation-delay-400">
-        <a routerLink="/login" class="bg-gradient-to-r from-blue-600 to-emerald-500 text-white font-bold text-lg px-8 py-4 rounded-xl hover:from-blue-700 hover:to-emerald-600 transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl">
-          Commencer →
-        </a>
+        @if (isLoggedIn()) {
+          <a routerLink="/dashboard" class="bg-gradient-to-r from-blue-600 to-emerald-500 text-white font-bold text-lg px-8 py-4 rounded-xl hover:from-blue-700 hover:to-emerald-600 transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl">
+            Mon espace →
+          </a>
+        } @else {
+          <a routerLink="/login" class="bg-gradient-to-r from-blue-600 to-emerald-500 text-white font-bold text-lg px-8 py-4 rounded-xl hover:from-blue-700 hover:to-emerald-600 transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl">
+            Commencer →
+          </a>
+        }
         <a href="#features" class="bg-white text-gray-700 font-bold text-lg px-8 py-4 rounded-xl border-2 border-gray-300 hover:border-gray-400 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
           Découvrir les fonctionnalités
         </a>
@@ -110,8 +116,8 @@
           </div>
 
           <!-- CTA Button -->
-          <a routerLink="/login" class="inline-flex items-center bg-gradient-to-r from-blue-600 to-emerald-500 text-white font-bold text-lg px-8 py-4 rounded-xl hover:from-blue-700 hover:to-emerald-600 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
-            Accéder à l'application
+          <a [routerLink]="isLoggedIn() ? '/dashboard' : '/login'" class="inline-flex items-center bg-gradient-to-r from-blue-600 to-emerald-500 text-white font-bold text-lg px-8 py-4 rounded-xl hover:from-blue-700 hover:to-emerald-600 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
+            {{ isLoggedIn() ? 'Mon espace' : 'Accéder à l\'application' }}
             <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
             </svg>
@@ -237,8 +243,8 @@
         Connectez-vous pour accéder à votre tableau de bord personnalisé
       </p>
       <div class="flex flex-col sm:flex-row gap-4 justify-center">
-        <a routerLink="/login" class="bg-gradient-to-r from-blue-600 to-emerald-500 text-white font-bold text-lg px-8 py-4 rounded-xl hover:from-blue-700 hover:to-emerald-600 transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl">
-          Se Connecter
+        <a [routerLink]="isLoggedIn() ? '/dashboard' : '/login'" class="bg-gradient-to-r from-blue-600 to-emerald-500 text-white font-bold text-lg px-8 py-4 rounded-xl hover:from-blue-700 hover:to-emerald-600 transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl">
+          {{ isLoggedIn() ? 'Mon espace' : 'Se connecter' }}
         </a>
       </div>
     </div>
