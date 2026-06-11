@@ -4,5 +4,5 @@
 }
 
 main {
-  min-height: calc(100vh - 4rem);
+  min-height: 100vh;
 }

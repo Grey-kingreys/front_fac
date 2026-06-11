@@ -1,0 +1,384 @@
+<div class="max-w-3xl mx-auto">
+
+  <!-- Header -->
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">Mon profil</h1>
+    <p class="text-gray-500 mt-1">Informations de votre compte</p>
+  </div>
+
+  @if (currentUser(); as user) {
+
+    <!-- Carte principale -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+
+      <!-- Bandeau haut -->
+      <div class="h-24 bg-gradient-to-r from-blue-600 to-emerald-500"></div>
+
+      <!-- Avatar + nom -->
+      <div class="px-6 pb-6">
+        <div class="flex items-end gap-4 -mt-12 mb-4">
+          <div class="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-emerald-500 text-white text-2xl font-bold border-4 border-white shadow-md select-none">
+            {{ getUserInitials() }}
+          </div>
+          <div class="mb-1">
+            <h2 class="text-xl font-bold text-gray-900">
+              {{ user.first_name && user.last_name ? user.first_name + ' ' + user.last_name : user.email }}
+            </h2>
+            <span
+              class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border mt-1"
+              [ngClass]="getRoleBadgeClass(user.role)"
+            >
+              {{ getRoleLabel(user.role) }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Infos -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+          <div class="space-y-1">
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Prénom</p>
+            <p class="text-sm font-medium text-gray-900">{{ user.first_name || '—' }}</p>
+          </div>
+
+          <div class="space-y-1">
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Nom</p>
+            <p class="text-sm font-medium text-gray-900">{{ user.last_name || '—' }}</p>
+          </div>
+
+          <div class="space-y-1">
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Adresse email</p>
+            <p class="text-sm font-medium text-gray-900">{{ user.email }}</p>
+          </div>
+
+          <div class="space-y-1">
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Téléphone</p>
+            <p class="text-sm font-medium text-gray-900">{{ user.phone || '—' }}</p>
+          </div>
+
+          @if (user.role !== 'superadmin') {
+            <div class="space-y-1">
+              <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Entreprise</p>
+              <p class="text-sm font-medium text-gray-900">{{ user.company_name || '—' }}</p>
+            </div>
+
+            <div class="space-y-1">
+              <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Dépôt</p>
+              <p class="text-sm font-medium text-gray-900">{{ user.depot_name || '—' }}</p>
+            </div>
+          }
+
+          <div class="space-y-1">
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Statut du compte</p>
+            <span
+              class="inline-flex items-center gap-1.5 text-sm font-medium"
+              [ngClass]="user.is_active ? 'text-emerald-600' : 'text-red-500'"
+            >
+              <span class="h-2 w-2 rounded-full" [ngClass]="user.is_active ? 'bg-emerald-500' : 'bg-red-400'"></span>
+              {{ user.is_active ? 'Actif' : 'Inactif' }}
+            </span>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+      <!-- Modifier le profil -->
+      <button
+        type="button"
+        (click)="openEditModal()"
+        class="flex items-center gap-3 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm hover:bg-slate-50 transition-colors text-left"
+      >
+        <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+          </svg>
+        </div>
+        <div>
+          <p class="text-sm font-semibold text-gray-900">Modifier le profil</p>
+          <p class="text-xs text-gray-500">Nom, prénom, téléphone</p>
+        </div>
+      </button>
+
+      <!-- Changer le mot de passe -->
+      <button
+        type="button"
+        (click)="openPasswordModal()"
+        class="flex items-center gap-3 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm hover:bg-slate-50 transition-colors text-left"
+      >
+        <div class="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+          </svg>
+        </div>
+        <div>
+          <p class="text-sm font-semibold text-gray-900">Changer le mot de passe</p>
+          <p class="text-xs text-gray-500">Sécurité du compte</p>
+        </div>
+      </button>
+
+    </div>
+
+  }
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<!-- Modal — Modifier le profil                                                 -->
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+@if (showEditModal()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <!-- Overlay -->
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" (click)="closeEditModal()"></div>
+
+    <!-- Panneau -->
+    <div class="relative w-full max-w-md bg-white rounded-2xl shadow-xl">
+
+      <!-- En-tête -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <h2 class="text-lg font-semibold text-gray-900">Modifier le profil</h2>
+        <button type="button" (click)="closeEditModal()" class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Formulaire -->
+      <form [formGroup]="editForm" (ngSubmit)="submitEditProfile()" class="px-6 py-5 space-y-4">
+
+        <!-- Message succès -->
+        @if (editSuccess()) {
+          <div class="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-700">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            Profil mis à jour avec succès.
+          </div>
+        }
+
+        <!-- Message erreur -->
+        @if (editError()) {
+          <div class="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            {{ editError() }}
+          </div>
+        }
+
+        <!-- Prénom -->
+        <div class="space-y-1.5">
+          <label class="text-sm font-medium text-gray-700">Prénom <span class="text-red-500">*</span></label>
+          <input
+            type="text"
+            formControlName="first_name"
+            class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+            [class.border-red-300]="editForm.get('first_name')?.invalid && editForm.get('first_name')?.touched"
+            placeholder="Votre prénom"
+          />
+          @if (editForm.get('first_name')?.invalid && editForm.get('first_name')?.touched) {
+            <p class="text-xs text-red-500">Le prénom est requis.</p>
+          }
+        </div>
+
+        <!-- Nom -->
+        <div class="space-y-1.5">
+          <label class="text-sm font-medium text-gray-700">Nom <span class="text-red-500">*</span></label>
+          <input
+            type="text"
+            formControlName="last_name"
+            class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+            [class.border-red-300]="editForm.get('last_name')?.invalid && editForm.get('last_name')?.touched"
+            placeholder="Votre nom"
+          />
+          @if (editForm.get('last_name')?.invalid && editForm.get('last_name')?.touched) {
+            <p class="text-xs text-red-500">Le nom est requis.</p>
+          }
+        </div>
+
+        <!-- Téléphone -->
+        <div class="space-y-1.5">
+          <label class="text-sm font-medium text-gray-700">Téléphone</label>
+          <input
+            type="tel"
+            formControlName="phone"
+            class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+            placeholder="+224 XXX XXX XXX"
+          />
+        </div>
+
+        <!-- Actions -->
+        <div class="flex gap-3 pt-2">
+          <button
+            type="button"
+            (click)="closeEditModal()"
+            class="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            Annuler
+          </button>
+          <button
+            type="submit"
+            [disabled]="editForm.invalid || editLoading()"
+            class="flex-1 py-2.5 rounded-xl bg-blue-600 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+          >
+            @if (editLoading()) {
+              <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+              </svg>
+            }
+            Enregistrer
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+}
+
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<!-- Modal — Changer le mot de passe                                            -->
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+@if (showPasswordModal()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <!-- Overlay -->
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" (click)="closePasswordModal()"></div>
+
+    <!-- Panneau -->
+    <div class="relative w-full max-w-md bg-white rounded-2xl shadow-xl">
+
+      <!-- En-tête -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <h2 class="text-lg font-semibold text-gray-900">Changer le mot de passe</h2>
+        <button type="button" (click)="closePasswordModal()" class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Formulaire -->
+      <form [formGroup]="passwordForm" (ngSubmit)="submitChangePassword()" class="px-6 py-5 space-y-4">
+
+        <!-- Message succès -->
+        @if (pwdSuccess()) {
+          <div class="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-700">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            Mot de passe modifié avec succès.
+          </div>
+        }
+
+        <!-- Message erreur -->
+        @if (pwdError()) {
+          <div class="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            {{ pwdError() }}
+          </div>
+        }
+
+        <!-- Mot de passe actuel -->
+        <div class="space-y-1.5">
+          <label class="text-sm font-medium text-gray-700">Mot de passe actuel <span class="text-red-500">*</span></label>
+          <div class="relative">
+            <input
+              [type]="showCurrentPwd() ? 'text' : 'password'"
+              formControlName="current_password"
+              class="w-full px-3.5 py-2.5 pr-10 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              [class.border-red-300]="passwordForm.get('current_password')?.invalid && passwordForm.get('current_password')?.touched"
+              placeholder="Votre mot de passe actuel"
+            />
+            <button type="button" (click)="showCurrentPwd.set(!showCurrentPwd())" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+              @if (showCurrentPwd()) {
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"/>
+                </svg>
+              } @else {
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+              }
+            </button>
+          </div>
+        </div>
+
+        <!-- Nouveau mot de passe -->
+        <div class="space-y-1.5">
+          <label class="text-sm font-medium text-gray-700">Nouveau mot de passe <span class="text-red-500">*</span></label>
+          <div class="relative">
+            <input
+              [type]="showNewPwd() ? 'text' : 'password'"
+              formControlName="new_password"
+              class="w-full px-3.5 py-2.5 pr-10 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              [class.border-red-300]="passwordForm.get('new_password')?.invalid && passwordForm.get('new_password')?.touched"
+              placeholder="8 caractères minimum"
+            />
+            <button type="button" (click)="showNewPwd.set(!showNewPwd())" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+              @if (showNewPwd()) {
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"/>
+                </svg>
+              } @else {
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+              }
+            </button>
+          </div>
+          @if (passwordForm.get('new_password')?.hasError('minlength') && passwordForm.get('new_password')?.touched) {
+            <p class="text-xs text-red-500">Minimum 8 caractères.</p>
+          }
+        </div>
+
+        <!-- Confirmation -->
+        <div class="space-y-1.5">
+          <label class="text-sm font-medium text-gray-700">Confirmer le nouveau mot de passe <span class="text-red-500">*</span></label>
+          <input
+            type="password"
+            formControlName="new_password_confirm"
+            class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+            [class.border-red-300]="passwordForm.errors?.['passwordsMismatch'] && passwordForm.get('new_password_confirm')?.touched"
+            placeholder="Répétez le nouveau mot de passe"
+          />
+          @if (passwordForm.errors?.['passwordsMismatch'] && passwordForm.get('new_password_confirm')?.touched) {
+            <p class="text-xs text-red-500">Les mots de passe ne correspondent pas.</p>
+          }
+        </div>
+
+        <!-- Actions -->
+        <div class="flex gap-3 pt-2">
+          <button
+            type="button"
+            (click)="closePasswordModal()"
+            class="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            Annuler
+          </button>
+          <button
+            type="submit"
+            [disabled]="passwordForm.invalid || pwdLoading()"
+            class="flex-1 py-2.5 rounded-xl bg-orange-500 text-sm font-medium text-white hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+          >
+            @if (pwdLoading()) {
+              <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+              </svg>
+            }
+            Modifier
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+}

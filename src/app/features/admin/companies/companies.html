@@ -1,0 +1,287 @@
+<!-- ============================================================
+     Page : Gestion des entreprises (SuperAdmin)
+     ============================================================ -->
+
+<!-- En-tête -->
+<div class="mb-6 flex items-start justify-between gap-4">
+  <div>
+    <h1 class="text-2xl font-bold text-gray-900">Entreprises</h1>
+    <p class="text-sm text-gray-500 mt-1">Gestion des entreprises clientes de la plateforme</p>
+  </div>
+  <button
+    type="button"
+    (click)="openCreate()"
+    class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm"
+  >
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+    Ajouter une entreprise
+  </button>
+</div>
+
+<!-- Barre de recherche + compteur -->
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-4">
+  <div class="flex flex-wrap gap-3 items-center">
+    <div class="relative flex-1 min-w-[220px]">
+      <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.35-4.35"/></svg>
+      <input
+        type="text"
+        placeholder="Rechercher une entreprise..."
+        [(ngModel)]="search"
+        (ngModelChange)="onSearchChange()"
+        class="w-full pl-9 pr-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
+      />
+    </div>
+    <span class="ml-auto text-sm text-gray-400">
+      @if (loading()) { Chargement... } @else { {{ total() }} entreprise{{ total() > 1 ? 's' : '' }} }
+    </span>
+  </div>
+</div>
+
+<!-- Tableau -->
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+
+  @if (loading()) {
+    <div class="flex items-center justify-center py-20 text-gray-400">
+      <svg class="w-6 h-6 animate-spin mr-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+      Chargement...
+    </div>
+  } @else if (companies().length === 0) {
+    <div class="py-20 text-center text-gray-400">
+      <svg class="w-12 h-12 mx-auto mb-3 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><rect width="16" height="20" x="4" y="2" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M9 22v-4h6v4M8 6h.01M16 6h.01M12 6h.01M12 10h.01M12 14h.01M16 10h.01M16 14h.01M8 10h.01M8 14h.01"/></svg>
+      <p class="font-medium text-gray-500">Aucune entreprise trouvée</p>
+      <p class="text-sm mt-1">{{ search ? 'Essayez de modifier votre recherche.' : 'Ajoutez la première entreprise.' }}</p>
+    </div>
+  } @else {
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-gray-100 bg-slate-50/60">
+          <th class="text-left px-5 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Entreprise</th>
+          <th class="text-left px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider hidden md:table-cell">Plan</th>
+          <th class="text-left px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider hidden lg:table-cell">Utilisateurs</th>
+          <th class="text-left px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider hidden lg:table-cell">Zones</th>
+          <th class="text-left px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Statut</th>
+          <th class="text-left px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider hidden xl:table-cell">Créée le</th>
+          <th class="px-4 py-3 w-24"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-50">
+        @for (company of companies(); track company.id) {
+          <tr class="hover:bg-slate-50/50 transition-colors">
+            <!-- Entreprise -->
+            <td class="px-5 py-3">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center text-white text-xs font-bold shrink-0 select-none">
+                  {{ getInitials(company.name) }}
+                </div>
+                <div class="min-w-0">
+                  <p class="font-medium text-gray-900 truncate">{{ company.name }}</p>
+                  <p class="text-xs text-gray-400 truncate">{{ company.slug }}</p>
+                </div>
+              </div>
+            </td>
+            <!-- Plan -->
+            <td class="px-4 py-3 hidden md:table-cell">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border" [ngClass]="getPlanBadge(company.subscription_plan)">
+                {{ getPlanLabel(company.subscription_plan) }}
+              </span>
+            </td>
+            <!-- Utilisateurs -->
+            <td class="px-4 py-3 text-gray-600 hidden lg:table-cell">
+              <span class="flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                {{ company.nombre_utilisateurs }}
+              </span>
+            </td>
+            <!-- Zones -->
+            <td class="px-4 py-3 text-gray-600 hidden lg:table-cell">
+              <span class="flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                {{ company.nombre_zones }}
+              </span>
+            </td>
+            <!-- Statut -->
+            <td class="px-4 py-3">
+              @if (company.is_active) {
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Active
+                </span>
+              } @else {
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-600 border border-red-200">
+                  <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Suspendue
+                </span>
+              }
+            </td>
+            <!-- Date -->
+            <td class="px-4 py-3 text-gray-400 text-xs hidden xl:table-cell">{{ formatDate(company.created_at) }}</td>
+            <!-- Actions -->
+            <td class="px-4 py-3">
+              <div class="flex items-center justify-end gap-1">
+                <button
+                  type="button" (click)="openEdit(company)"
+                  class="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                  title="Modifier"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                </button>
+                <button
+                  type="button" (click)="openToggle(company)"
+                  class="p-1.5 rounded-lg text-gray-400 transition-colors"
+                  [ngClass]="company.is_active ? 'hover:text-red-600 hover:bg-red-50' : 'hover:text-emerald-600 hover:bg-emerald-50'"
+                  [title]="company.is_active ? 'Suspendre' : 'Réactiver'"
+                >
+                  @if (company.is_active) {
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  } @else {
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  }
+                </button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    <!-- Pagination -->
+    @if (totalPages() > 1) {
+      <div class="flex items-center justify-between px-5 py-3 border-t border-gray-100 bg-slate-50/40">
+        <p class="text-sm text-gray-500">{{ pageStart() }}–{{ pageEnd() }} sur {{ total() }}</p>
+        <div class="flex items-center gap-2">
+          <button type="button" (click)="prevPage()" [disabled]="!hasPrev()"
+            class="px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+            ← Précédent
+          </button>
+          <span class="text-sm text-gray-500">{{ page() }} / {{ totalPages() }}</span>
+          <button type="button" (click)="nextPage()" [disabled]="!hasNext()"
+            class="px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+            Suivant →
+          </button>
+        </div>
+      </div>
+    }
+  }
+</div>
+
+<!-- ============================================================
+     SLIDE-OVER PANEL
+     ============================================================ -->
+
+@if (showPanel()) {
+  <div class="fixed inset-0 bg-black/30 z-40 backdrop-blur-sm" (click)="closePanel()"></div>
+  <div class="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-white shadow-2xl flex flex-col">
+
+    <!-- En-tête -->
+    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+      <h2 class="text-lg font-semibold text-gray-900">
+        {{ isEditing() ? 'Modifier l\'entreprise' : 'Ajouter une entreprise' }}
+      </h2>
+      <button type="button" (click)="closePanel()" class="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <!-- Corps -->
+    <div class="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+
+      <!-- Nom -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1.5">Nom de l'entreprise <span class="text-red-500">*</span></label>
+        <input
+          type="text" [(ngModel)]="formData.name" placeholder="Ex: Diallo Trading SARL"
+          class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
+        />
+      </div>
+
+      <!-- Email admin (création uniquement) -->
+      @if (!isEditing()) {
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Email de l'administrateur <span class="text-red-500">*</span></label>
+          <input
+            type="email" [(ngModel)]="formData.email_admin" placeholder="admin@entreprise.com"
+            class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
+          />
+          <p class="text-xs text-gray-400 mt-1.5 flex items-start gap-1.5">
+            <svg class="w-3.5 h-3.5 text-blue-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 16v-4m0-4h.01"/></svg>
+            Un compte Administrateur sera créé et un email de première connexion sera envoyé à cette adresse.
+          </p>
+        </div>
+      }
+
+      <!-- Plan d'abonnement -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1.5">Plan d'abonnement <span class="text-red-500">*</span></label>
+        <select
+          [(ngModel)]="formData.subscription_plan"
+          class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 bg-white"
+        >
+          @for (p of plans; track p.value) {
+            <option [value]="p.value">{{ p.label }}</option>
+          }
+        </select>
+      </div>
+
+    </div>
+
+    <!-- Pied -->
+    <div class="px-6 py-4 border-t border-gray-100 flex gap-3">
+      <button type="button" (click)="closePanel()"
+        class="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+        Annuler
+      </button>
+      <button type="button" (click)="save()" [disabled]="!canSave() || panelLoading()"
+        class="flex-1 px-4 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2">
+        @if (panelLoading()) {
+          <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+        }
+        {{ isEditing() ? 'Enregistrer' : 'Créer l\'entreprise' }}
+      </button>
+    </div>
+  </div>
+}
+
+<!-- ============================================================
+     MODALE TOGGLE ACTIF / SUSPENDU
+     ============================================================ -->
+
+@if (toggleTarget() !== null) {
+  <div class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+      <div class="flex items-start gap-4">
+        <div class="w-12 h-12 rounded-full flex items-center justify-center shrink-0"
+          [ngClass]="toggleTarget()!.is_active ? 'bg-red-100' : 'bg-emerald-100'">
+          @if (toggleTarget()!.is_active) {
+            <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          } @else {
+            <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          }
+        </div>
+        <div>
+          <h3 class="font-semibold text-gray-900">
+            {{ toggleTarget()!.is_active ? 'Suspendre' : 'Réactiver' }} l'entreprise ?
+          </h3>
+          <p class="text-sm text-gray-500 mt-1">
+            <strong>{{ toggleTarget()!.name }}</strong>
+            {{ toggleTarget()!.is_active
+              ? ' et tous ses utilisateurs seront bloqués.'
+              : ' et ses utilisateurs pourront de nouveau se connecter.' }}
+          </p>
+        </div>
+      </div>
+      <div class="flex gap-3 mt-6">
+        <button type="button" (click)="closeToggle()"
+          class="flex-1 px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+          Annuler
+        </button>
+        <button type="button" (click)="executeToggle()" [disabled]="toggleLoading()"
+          class="flex-1 px-4 py-2 rounded-xl text-white text-sm font-medium disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+          [ngClass]="toggleTarget()!.is_active ? 'bg-red-600 hover:bg-red-700' : 'bg-emerald-600 hover:bg-emerald-700'"
+        >
+          @if (toggleLoading()) {
+            <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+          }
+          {{ toggleTarget()!.is_active ? 'Suspendre' : 'Réactiver' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

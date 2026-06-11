@@ -1,21 +1,31 @@
-import { Component, inject } from '@angular/core';
-import { RouterLink, Router } from '@angular/router';
+import { Component, inject, computed } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth';
+
+export type RoleGroup = 'superadmin' | 'manager' | 'stock' | 'cashier' | 'driver' | 'commercial' | 'other';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, CommonModule],
   templateUrl: './dashboard.html',
 })
 export class Dashboard {
   private authService = inject(AuthService);
-  private router = inject(Router);
 
   currentUser = this.authService.currentUser;
 
-  logout(): void {
-    this.authService.logout();
-    this.router.navigate(['/login']);
-  }
+  roleGroup = computed((): RoleGroup => {
+    const role = this.currentUser()?.role;
+    switch (role) {
+      case 'superadmin':                        return 'superadmin';
+      case 'admin': case 'superviseur':         return 'manager';
+      case 'gestionnaire_stock':                return 'stock';
+      case 'caissier':                          return 'cashier';
+      case 'chauffeur':                         return 'driver';
+      case 'commercial':                        return 'commercial';
+      default:                                  return 'other';
+    }
+  });
 }

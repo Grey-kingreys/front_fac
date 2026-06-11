@@ -22,7 +22,7 @@ export class Login {
   loading = signal(false);
   submitted = signal(false);
   error = signal<string | null>(null);
-  returnUrl = signal('/app/dashboard');
+  returnUrl = signal('/dashboard');
   showPassword = signal(false);
 
   constructor() {
@@ -61,7 +61,7 @@ export class Login {
         this.loading.set(false);
         const user = this.authService.getCurrentUser();
         const defaultRoute = this.getDefaultRouteForRole(user);
-        const redirectUrl = this.returnUrl() === '/app/dashboard' ? defaultRoute : this.returnUrl();
+        const redirectUrl = this.returnUrl() === '/dashboard' ? defaultRoute : this.returnUrl();
         this.router.navigate([redirectUrl]);
       },
       error: (error) => {
@@ -77,16 +77,16 @@ export class Login {
 
   private getDefaultRouteForRole(user: any | null): string {
     if (!user) {
-      return '/app/dashboard';
+      return '/dashboard';
     }
 
     switch (user.role) {
-      case 'driver':
-        return '/app/logistique';
-      case 'cashier':
-        return '/app/stocks';
+      case 'chauffeur':
+        return '/logistique';
+      case 'caissier':
+        return '/stocks';
       default:
-        return '/app/dashboard';
+        return '/dashboard';
     }
   }
 

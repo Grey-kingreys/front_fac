@@ -1,41 +1,212 @@
-<nav class="bg-white border-b border-gray-200 sticky top-0 z-50">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex h-16 items-center justify-between gap-3">
-      <div class="flex items-center gap-3">
-        <button
-          type="button"
-          (click)="onToggle()"
-          class="inline-flex items-center justify-center rounded-lg p-2 text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 md:hidden"
-          aria-label="Toggle sidebar"
-        >
-          <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
+<!-- Bannière de simulation (visible en mode simulation) -->
+@if (isSimulating()) {
+  <div class="bg-amber-500 text-white text-xs font-medium flex items-center justify-between px-4 py-1.5">
+    <div class="flex items-center gap-2">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+      <span>Simulation active — Vue en tant que <strong>{{ getUserDisplayName(simulatedAs()) }}</strong> ({{ getRoleLabel(simulatedAs()?.role || '') }})</span>
+    </div>
+    <button
+      type="button"
+      (click)="stopSimulation()"
+      class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/20 hover:bg-white/30 transition-colors font-semibold text-xs"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      Quitter la simulation
+    </button>
+  </div>
+}
 
-        <a routerLink="/app/dashboard" class="flex items-center gap-3 text-slate-900 font-semibold text-lg hover:text-blue-600 transition-colors">
-          <span class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600">DG</span>
-          <span>DjoulaGest</span>
-        </a>
-      </div>
+<header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto px-4 lg:px-6 h-16 flex items-center justify-between">
 
-      <div class="flex items-center gap-4">
-        <div class="hidden sm:flex flex-col text-right">
-          <span class="text-sm font-semibold text-slate-900">{{ currentUser()?.first_name || currentUser()?.email }}</span>
-          <span class="text-xs text-slate-500">{{ companyLabel }}</span>
-        </div>
+    <!-- LEFT: Toggle mobile uniquement -->
+    <button
+      type="button"
+      (click)="onToggle()"
+      class="lg:hidden inline-flex items-center justify-center w-9 h-9 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+      aria-label="Menu"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+    </button>
 
-        <div class="flex items-center gap-3">
-          <span class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-700 font-semibold">{{ initials }}</span>
+    <!-- CENTER -->
+    <div class="hidden lg:block flex-1"></div>
+
+    <!-- RIGHT -->
+    <div class="flex items-center gap-3">
+
+      <!-- Notifications -->
+      <button
+        type="button"
+        class="relative inline-flex items-center justify-center w-9 h-9 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+        <span class="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></span>
+      </button>
+
+      <!-- ── Bouton Simulateur (SuperAdmin uniquement) ── -->
+      @if (isSuperAdmin()) {
+        <div class="relative">
           <button
             type="button"
-            (click)="logout()"
-            class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:border-slate-300 hover:bg-slate-50 transition"
+            (click)="toggleSimulator()"
+            class="inline-flex items-center gap-1.5 h-9 px-3 rounded-lg text-sm font-medium transition-colors"
+            [class]="isSimulating()
+              ? 'bg-amber-100 text-amber-700 border border-amber-300 hover:bg-amber-200'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 border border-transparent'"
+            title="Simuler un utilisateur"
           >
-            Déconnexion
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+            <span class="hidden sm:inline">Simuler</span>
+            @if (isSimulating()) {
+              <span class="h-2 w-2 rounded-full bg-amber-500 animate-pulse"></span>
+            }
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" [class.rotate-180]="isSimulatorOpen()"><path d="m6 9 6 6 6-6"/></svg>
           </button>
+
+          <!-- Dropdown simulateur -->
+          @if (isSimulatorOpen()) {
+            <div class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-200 z-50 overflow-hidden">
+
+              <!-- En-tête -->
+              <div class="px-4 py-3 border-b border-gray-100 bg-slate-50">
+                <p class="text-sm font-semibold text-gray-900">Simulateur de rôle</p>
+                <p class="text-xs text-gray-500 mt-0.5">Cliquez sur un utilisateur pour simuler sa vue</p>
+              </div>
+
+              <!-- Contenu -->
+              <div class="max-h-80 overflow-y-auto">
+
+                @if (simulatorLoading()) {
+                  <div class="flex items-center justify-center py-8 gap-2 text-gray-400 text-sm">
+                    <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                    </svg>
+                    Chargement...
+                  </div>
+                } @else if (simulatorUsers().length === 0) {
+                  <div class="py-8 text-center text-sm text-gray-400">
+                    Aucun utilisateur actif trouvé.
+                  </div>
+                } @else {
+                  @for (user of simulatorUsers(); track user.id) {
+                    <button
+                      type="button"
+                      (click)="simulate(user)"
+                      class="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors text-left border-b border-gray-50 last:border-0"
+                      [class.bg-amber-50]="simulatedAs()?.id === user.id"
+                    >
+                      <!-- Avatar initiales -->
+                      <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-emerald-400 text-white text-xs font-bold select-none">
+                        {{ getUserSimulatorInitials(user) }}
+                      </div>
+                      <!-- Infos -->
+                      <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900 truncate">
+                          {{ user.first_name || user.last_name ? (user.first_name + ' ' + user.last_name) : user.email }}
+                        </p>
+                        <p class="text-xs text-gray-400 truncate">{{ user.email }}</p>
+                      </div>
+                      <!-- Badge rôle -->
+                      <span
+                        class="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border"
+                        [ngClass]="getRoleBadgeClass(user.role)"
+                      >
+                        {{ getRoleLabel(user.role) }}
+                      </span>
+                      <!-- Check si c'est l'utilisateur simulé -->
+                      @if (simulatedAs()?.id === user.id) {
+                        <svg class="w-4 h-4 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                        </svg>
+                      }
+                    </button>
+                  }
+                }
+              </div>
+
+              <!-- Pied — Quitter simulation -->
+              @if (isSimulating()) {
+                <div class="border-t border-gray-100 px-4 py-3">
+                  <button
+                    type="button"
+                    (click)="stopSimulation()"
+                    class="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-amber-50 text-amber-700 text-sm font-medium hover:bg-amber-100 transition-colors border border-amber-200"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                    Quitter la simulation
+                  </button>
+                </div>
+              }
+
+            </div>
+          }
         </div>
+      }
+
+      <!-- ── Avatar avec dropdown utilisateur ── -->
+      <div class="relative">
+        <button
+          type="button"
+          (click)="toggleUserMenu()"
+          class="flex items-center gap-2 pl-1 pr-2 py-1 rounded-full hover:bg-gray-100 transition-colors"
+          [class.bg-gray-100]="isUserMenuOpen()"
+        >
+          <div class="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-blue-600 to-emerald-500 text-white text-xs font-semibold">
+            {{ getUserInitials(currentUser()) }}
+          </div>
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400" [class.rotate-180]="isUserMenuOpen()"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+
+        @if (isUserMenuOpen()) {
+          <div class="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 z-50 overflow-hidden">
+
+            <!-- En-tête : avatar + nom + email + badge rôle -->
+            <div class="px-4 py-3 border-b border-gray-100 flex items-center gap-3">
+              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-emerald-500 text-white text-sm font-bold select-none">
+                {{ getUserInitials(currentUser()) }}
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold text-gray-900 truncate">{{ getUserDisplayName(currentUser()) }}</p>
+                <p class="text-xs text-gray-400 truncate">{{ currentUser()?.email }}</p>
+                <span
+                  class="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border"
+                  [ngClass]="getRoleBadgeClass(currentUser()?.role || '')"
+                >
+                  {{ getRoleLabel(currentUser()?.role || '') }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="py-1">
+              <button
+                type="button"
+                (click)="goToProfile()"
+                class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-slate-50 transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+                Mon profil
+              </button>
+            </div>
+
+            <!-- Déconnexion -->
+            <div class="border-t border-gray-100 py-1">
+              <button
+                type="button"
+                (click)="logout()"
+                class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+                Se déconnecter
+              </button>
+            </div>
+
+          </div>
+        }
       </div>
+
     </div>
   </div>
-</nav>
+</header>

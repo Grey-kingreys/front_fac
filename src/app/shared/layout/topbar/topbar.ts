@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { trigger, state, style, transition, animate } from '@angular/animations';
+import { AuthService } from '../../../core/services/auth';
 
 @Component({
   selector: 'app-topbar',
@@ -27,6 +28,9 @@ import { trigger, state, style, transition, animate } from '@angular/animations'
   ]
 })
 export class Topbar {
+  private authService = inject(AuthService);
+  readonly isLoggedIn = this.authService.isLoggedIn;
+
   isMobileMenuOpen = false;
 
   toggleMobileMenu(): void {
