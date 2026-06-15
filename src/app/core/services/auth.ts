@@ -98,7 +98,7 @@ export class AuthService {
     this.clearTokenRefreshTimer();
 
     if (refreshToken) {
-      return this.http.post(`${this.API_URL}/logout/`, { refresh_token: refreshToken }).pipe(
+      return this.http.post(`${this.API_URL}/logout/`, { refresh: refreshToken }).pipe(
         catchError(() => {
           return new Observable(observer => observer.complete());
         })
