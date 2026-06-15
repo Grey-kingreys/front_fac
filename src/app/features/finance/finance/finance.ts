@@ -1,11 +1,10 @@
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-finance',
-  imports: [],
+  standalone: true,
+  imports: [CommonModule],
   templateUrl: './finance.html',
-  styleUrl: './finance.css',
 })
-export class Finance {
-
-}
+export class Finance {}

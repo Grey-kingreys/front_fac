@@ -1,11 +1,13 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-spinner',
-  imports: [],
+  standalone: true,
+  imports: [CommonModule],
   templateUrl: './spinner.html',
-  styleUrl: './spinner.css',
 })
 export class Spinner {
-
+  @Input() size: 'sm' | 'md' | 'lg' = 'md';
+  @Input() message = '';
 }

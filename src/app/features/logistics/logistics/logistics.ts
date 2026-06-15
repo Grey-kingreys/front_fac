@@ -1,11 +1,10 @@
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-logistics',
-  imports: [],
+  standalone: true,
+  imports: [CommonModule],
   templateUrl: './logistics.html',
-  styleUrl: './logistics.css',
 })
-export class Logistics {
-
-}
+export class Logistics {}
