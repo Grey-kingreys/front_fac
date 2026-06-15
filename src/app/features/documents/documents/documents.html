@@ -1,1 +1,91 @@
-<p>documents works!</p>
+<div class="mb-6">
+  <h1 class="text-2xl font-bold text-gray-900">Documents</h1>
+  <p class="text-sm text-gray-500 mt-1">Archivage et gestion documentaire</p>
+</div>
+
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-4">
+  <div class="flex flex-wrap gap-3 items-center">
+    <div class="relative flex-1 min-w-[220px]">
+      <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.35-4.35"/></svg>
+      <input type="text" placeholder="Rechercher un document..." [(ngModel)]="search" (ngModelChange)="onSearchChange()"
+        class="w-full pl-9 pr-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"/>
+    </div>
+    <select [(ngModel)]="categoryFilter" (ngModelChange)="page.set(1); load()"
+      class="px-3 py-2 rounded-xl border border-gray-200 text-sm bg-white focus:outline-none">
+      <option value="">Toutes catégories</option>
+      <option value="bon_livraison">Bons de livraison</option>
+      <option value="facture">Factures</option>
+      <option value="contrat">Contrats</option>
+      <option value="rapport">Rapports</option>
+      <option value="autre">Autre</option>
+    </select>
+    <span class="ml-auto text-sm text-gray-400">
+      @if (loading()) { Chargement... } @else { {{ total() }} document{{ total() > 1 ? 's' : '' }} }
+    </span>
+  </div>
+</div>
+
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+  @if (loading()) {
+    <div class="flex items-center justify-center py-20 text-gray-400">
+      <svg class="w-6 h-6 animate-spin mr-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+      Chargement...
+    </div>
+  } @else if (documents().length === 0) {
+    <div class="py-20 text-center text-gray-400">
+      <svg class="w-12 h-12 mx-auto mb-3 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V7z"/><path stroke-linecap="round" stroke-linejoin="round" d="M14 2v4a2 2 0 002 2h4"/></svg>
+      <p class="font-medium text-gray-500">Aucun document</p>
+      <p class="text-sm mt-1">{{ search ? 'Modifiez votre recherche.' : 'Aucun document archivé.' }}</p>
+    </div>
+  } @else {
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-gray-100 bg-slate-50/60">
+          <th class="text-left px-5 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Document</th>
+          <th class="text-left px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Catégorie</th>
+          <th class="text-left px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider hidden md:table-cell">Ajouté par</th>
+          <th class="text-right px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider hidden lg:table-cell">Taille</th>
+          <th class="text-left px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider hidden xl:table-cell">Date</th>
+          <th class="px-4 py-3 w-16"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-50">
+        @for (doc of documents(); track doc.id) {
+          <tr class="hover:bg-slate-50/50 transition-colors">
+            <td class="px-5 py-3">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
+                  <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                </div>
+                <p class="font-medium text-gray-900 truncate max-w-[200px]">{{ doc.name }}</p>
+              </div>
+            </td>
+            <td class="px-4 py-3">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border" [ngClass]="getCategoryClass(doc.category)">
+                {{ getCategoryLabel(doc.category) }}
+              </span>
+            </td>
+            <td class="px-4 py-3 text-gray-600 hidden md:table-cell">{{ doc.created_by_name }}</td>
+            <td class="px-4 py-3 text-right text-gray-500 hidden lg:table-cell">{{ formatSize(doc.file_size) }}</td>
+            <td class="px-4 py-3 text-gray-400 text-xs hidden xl:table-cell">{{ doc.created_at | date:'dd/MM/yyyy' }}</td>
+            <td class="px-4 py-3">
+              <a [href]="doc.file_url" target="_blank" class="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors inline-flex" title="Télécharger">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              </a>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    @if (totalPages() > 1) {
+      <div class="flex items-center justify-between px-5 py-3 border-t border-gray-100 bg-slate-50/40">
+        <p class="text-sm text-gray-500">{{ (page() - 1) * PAGE_SIZE + 1 }}–{{ Math.min(page() * PAGE_SIZE, total()) }} sur {{ total() }}</p>
+        <div class="flex items-center gap-2">
+          <button type="button" (click)="prevPage()" [disabled]="!hasPrev()" class="px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-40">← Précédent</button>
+          <span class="text-sm text-gray-500">{{ page() }} / {{ totalPages() }}</span>
+          <button type="button" (click)="nextPage()" [disabled]="!hasNext()" class="px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-40">Suivant →</button>
+        </div>
+      </div>
+    }
+  }
+</div>

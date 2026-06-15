@@ -100,4 +100,10 @@ export const routes: Routes = [
     path: '**',
     loadComponent: () => import('./shared/components/page-not-found/page-not-found').then(m => m.PageNotFound),
   },
+  {
+  path: 'zones',
+  canActivate: [roleGuard],
+  data: { roles: ['admin', 'superadmin'] },
+  loadComponent: () => import('./features/zones/zones/zones').then(m => m.Zones),
+},
 ];

@@ -64,6 +64,13 @@ const NAV_ITEMS: NavItem[] = [
     roles: ['superadmin'],
   },
   {
+  path: '/zones',
+  label: 'Zones & Dépôts',
+  icon: 'mapPin',
+  section: 'ADMINISTRATION',
+  roles: ['admin', 'superadmin'],
+  },
+  {
     path: '/admin',
     label: 'Tous les utilisateurs',
     icon: 'users',
@@ -150,6 +157,14 @@ const NAV_ITEMS: NavItem[] = [
     section: 'ADMINISTRATION',
     roles: ['admin'],
   },
+  // Après le bloc CATALOGUE, ajouter :
+{
+  path: '/zones',
+  label: 'Zones & Dépôts',
+  icon: 'mapPin',
+  section: 'ADMINISTRATION',
+  roles: ['admin', 'superadmin'],
+},
 ];
 // ============================================================================
 // Icônes SVG
