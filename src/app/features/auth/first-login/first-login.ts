@@ -6,13 +6,12 @@ import { CommonModule } from '@angular/common';
 import { environment } from '../../../../environments/environment';
 
 @Component({
-  selector: 'app-reset-password',
+  selector: 'app-first-login',
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
-  templateUrl: './reset-password.html',
-  styleUrl: './reset-password.css',
+  templateUrl: './first-login.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ResetPassword implements OnInit {
+export class FirstLogin implements OnInit {
   private http = inject(HttpClient);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
@@ -21,18 +20,21 @@ export class ResetPassword implements OnInit {
 
   private readonly API_URL = `${environment.apiUrl}/auth`;
 
-  resetForm: FormGroup;
+  firstLoginForm: FormGroup;
   loading = signal(false);
   submitted = signal(false);
   error = signal<string | null>(null);
   success = signal(false);
-  tokenValid = signal(true);
+  tokenValid = signal(false);
+  checking = signal(true);
+  userEmail = signal<string | null>(null);
+  companyName = signal<string | null>(null);
   showPassword = signal(false);
   showConfirmPassword = signal(false);
   token = signal<string | null>(null);
 
   constructor() {
-    this.resetForm = this.fb.group(
+    this.firstLoginForm = this.fb.group(
       {
         password: ['', [Validators.required, Validators.minLength(8)]],
         confirmPassword: ['', [Validators.required]],
@@ -42,16 +44,36 @@ export class ResetPassword implements OnInit {
   }
 
   ngOnInit(): void {
-    this.token.set(this.route.snapshot.queryParams['token'] || null);
+    const t = this.route.snapshot.queryParams['token'] || null;
+    this.token.set(t);
 
-    if (!this.token()) {
-      this.tokenValid.set(false);
-      this.error.set('Token invalide ou expiré. Veuillez refaire une demande.');
+    if (!t) {
+      this.checking.set(false);
+      this.error.set('Lien invalide. Contactez votre administrateur.');
+      return;
     }
+
+    // Valider le token auprès du backend avant d'afficher le formulaire
+    const sub = this.http.get<{ success: boolean; data?: { email: string; company: string | null }; message: string }>(
+      `${this.API_URL}/first-login/?token=${t}`
+    ).subscribe({
+      next: (res) => {
+        this.tokenValid.set(true);
+        this.userEmail.set(res.data?.email ?? null);
+        this.companyName.set(res.data?.company ?? null);
+        this.checking.set(false);
+      },
+      error: (err) => {
+        this.error.set(err.error?.message || 'Ce lien est invalide ou a déjà été utilisé. Contactez votre administrateur.');
+        this.checking.set(false);
+      },
+    });
+
+    this.destroyRef.onDestroy(() => sub.unsubscribe());
   }
 
   get f() {
-    return this.resetForm.controls;
+    return this.firstLoginForm.controls;
   }
 
   togglePasswordVisibility(): void {
@@ -66,31 +88,34 @@ export class ResetPassword implements OnInit {
     this.submitted.set(true);
     this.error.set(null);
 
-    if (this.resetForm.invalid) {
+    if (this.firstLoginForm.invalid) {
       return;
     }
 
     this.loading.set(true);
 
-    const sub = this.http.post(`${this.API_URL}/password-reset/confirm/`, {
+    const sub = this.http.post(`${this.API_URL}/first-login/`, {
       token: this.token(),
-      new_password: this.resetForm.value.password,
-      new_password_confirm: this.resetForm.value.confirmPassword,
+      password: this.firstLoginForm.value.password,
+      password_confirm: this.firstLoginForm.value.confirmPassword,
     }).subscribe({
       next: () => {
         this.success.set(true);
         this.loading.set(false);
         setTimeout(() => {
           this.router.navigate(['/login']);
-        }, 2000);
+        }, 3000);
       },
-      error: (error) => {
+      error: (err) => {
         this.loading.set(false);
-        if (error.status === 400) {
-          this.error.set(error.error?.detail || 'Lien invalide ou expiré.');
-          this.tokenValid.set(false);
+        const msg = err.error?.message || err.error?.detail;
+        if (msg) {
+          this.error.set(msg);
+        } else if (err.error?.errors) {
+          const firstError = Object.values(err.error.errors)[0] as string;
+          this.error.set(firstError);
         } else {
-          this.error.set(error.error?.detail || 'Une erreur est survenue. Veuillez réessayer.');
+          this.error.set('Une erreur est survenue. Veuillez réessayer.');
         }
       },
     });

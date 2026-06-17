@@ -57,8 +57,12 @@ export class Login {
     this.loading.set(true);
 
     const subscription = this.authService.login(this.loginForm.value).subscribe({
-      next: () => {
+      next: (response) => {
         this.loading.set(false);
+        if ('requires_2fa' in response && response.requires_2fa) {
+          this.router.navigate(['/verify-2fa']);
+          return;
+        }
         const user = this.authService.getCurrentUser();
         const defaultRoute = this.getDefaultRouteForRole(user);
         const redirectUrl = this.returnUrl() === '/dashboard' ? defaultRoute : this.returnUrl();

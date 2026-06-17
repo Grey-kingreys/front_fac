@@ -16,6 +16,19 @@ export interface LoginResponse {
   user: CurrentUser;
 }
 
+export interface TwoFactorRequiredResponse {
+  requires_2fa: true;
+  temp_token: string;
+  method: 'totp' | 'email';
+  message: string;
+}
+
+export interface TwoFactorPending {
+  tempToken: string;
+  method: 'totp' | 'email';
+  message: string;
+}
+
 export interface RefreshTokenRequest {
   refresh: string;
 }
@@ -38,6 +51,8 @@ export interface CurrentUser {
   depot_name?: string | null;
   avatar_url?: string | null;
   phone?: string;
+  two_factor_enabled?: boolean;
+  two_factor_method?: 'totp' | 'email' | '';
 }
 
 @Injectable({
@@ -59,6 +74,9 @@ export class AuthService {
   private isLoggedInSignal = signal<boolean>(this.hasValidToken());
   public isLoggedIn = this.isLoggedInSignal.asReadonly();
 
+  private twoFactorPendingSignal = signal<TwoFactorPending | null>(null);
+  public twoFactorPending = this.twoFactorPendingSignal.asReadonly();
+
   // ── Simulation de rôle (SuperAdmin uniquement) ───────────────────────────────
   private realUserSignal = signal<CurrentUser | null>(null);
   public realUser = this.realUserSignal.asReadonly();
@@ -77,11 +95,20 @@ export class AuthService {
     }
   }
 
-  login(credentials: LoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.API_URL}/login/`, credentials).pipe(
+  login(credentials: LoginRequest): Observable<LoginResponse | TwoFactorRequiredResponse> {
+    return this.http.post<LoginResponse | TwoFactorRequiredResponse>(`${this.API_URL}/login/`, credentials).pipe(
       tap(response => {
-        this.setTokens(response.access, response.refresh);
-        this.setCurrentUser(response.user);
+        if ('requires_2fa' in response && response.requires_2fa) {
+          this.twoFactorPendingSignal.set({
+            tempToken: (response as TwoFactorRequiredResponse).temp_token,
+            method: (response as TwoFactorRequiredResponse).method,
+            message: (response as TwoFactorRequiredResponse).message,
+          });
+          return;
+        }
+        const r = response as LoginResponse;
+        this.setTokens(r.access, r.refresh);
+        this.setCurrentUser(r.user);
         this.isLoggedInSignal.set(true);
         this.scheduleTokenRefresh();
       }),
@@ -92,13 +119,54 @@ export class AuthService {
     );
   }
 
+  loginVerify2fa(tempToken: string, code: string): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${this.API_URL}/2fa/login-verify/`, { temp_token: tempToken, code }).pipe(
+      tap(response => {
+        const user: any = response.user;
+        if (!user.avatar_url && user.avatar) user.avatar_url = user.avatar;
+        this.setTokens(response.access, response.refresh);
+        this.setCurrentUser(response.user);
+        this.isLoggedInSignal.set(true);
+        this.twoFactorPendingSignal.set(null);
+        this.scheduleTokenRefresh();
+      }),
+      catchError(error => throwError(() => error))
+    );
+  }
+
+  setup2fa(method: 'totp' | 'email'): Observable<{ method: string; secret?: string; qr_code?: string; message: string }> {
+    return this.http.post<any>(`${this.API_URL}/2fa/setup/`, { method });
+  }
+
+  verify2faSetup(method: 'totp' | 'email', code: string): Observable<{ detail: string }> {
+    return this.http.post<{ detail: string }>(`${this.API_URL}/2fa/setup-verify/`, { method, code }).pipe(
+      tap(() => {
+        const user = this.currentUserSignal();
+        if (user) this.setCurrentUser({ ...user, two_factor_enabled: true, two_factor_method: method });
+      })
+    );
+  }
+
+  disable2fa(password: string): Observable<{ detail: string }> {
+    return this.http.post<{ detail: string }>(`${this.API_URL}/2fa/disable/`, { password }).pipe(
+      tap(() => {
+        const user = this.currentUserSignal();
+        if (user) this.setCurrentUser({ ...user, two_factor_enabled: false, two_factor_method: '' });
+      })
+    );
+  }
+
+  resend2faCode(tempToken: string): Observable<{ detail: string }> {
+    return this.http.post<{ detail: string }>(`${this.API_URL}/2fa/resend/`, { temp_token: tempToken });
+  }
+
   logout(): Observable<any> {
     const refreshToken = this.getRefreshToken();
     this.clearAuth();
     this.clearTokenRefreshTimer();
 
     if (refreshToken) {
-      return this.http.post(`${this.API_URL}/logout/`, { refresh_token: refreshToken }).pipe(
+      return this.http.post(`${this.API_URL}/logout/`, { refresh: refreshToken }).pipe(
         catchError(() => {
           return new Observable(observer => observer.complete());
         })
@@ -215,6 +283,7 @@ export class AuthService {
     this.storage.removeItem(this.CURRENT_USER_KEY);
     this.currentUserSignal.set(null);
     this.isLoggedInSignal.set(false);
+    this.twoFactorPendingSignal.set(null);
   }
 
   private scheduleTokenRefresh(): void {
