@@ -1,3 +1,7 @@
+// ============================================================
+// FINANCE COMPONENT — Mis à jour pour les vrais champs backend
+// Chemin : src/app/features/finance/finance/finance.ts
+// ============================================================
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -18,16 +22,23 @@ export class Finance implements OnInit {
   loading = signal(false);
   total = signal(0);
 
-  totalOpen = computed(() => this.sessions().filter(s => s.status === 'open').length);
-  totalBalance = computed(() => this.sessions().filter(s => s.status === 'open').reduce((sum, s) => sum + s.expected_amount, 0));
+  // Avec les vrais champs : statut 'ouverte' (pas 'open')
+  totalOpen = computed(() => this.sessions().filter(s => s.statut === 'ouverte').length);
+  totalBalance = computed(() =>
+    this.sessions()
+      .filter(s => s.statut === 'ouverte')
+      .reduce((sum, s) => sum + (s.solde_fermeture_theorique ?? s.solde_ouverture), 0)
+  );
 
   showOpenPanel = signal(false);
   showClosePanel = signal(false);
   selectedSession = signal<CashSession | null>(null);
   actionLoading = signal(false);
 
-  openForm = { depot_id: 0, opening_amount: 0 };
-  closeForm = { closing_amount: 0, note: '' };
+  // Formulaire ouverture : backend attend {caisse, solde_ouverture}
+  // NOTE: le caissier doit choisir une caisse existante — on simplifie avec depot_id
+  openForm = { caisse: 0, solde_ouverture: 0, notes: '' };
+  closeForm = { solde_reel: 0, motif_ecart: '' };
 
   ngOnInit(): void { this.load(); }
 
@@ -40,16 +51,27 @@ export class Finance implements OnInit {
   }
 
   openSession(): void {
+    if (!this.openForm.caisse) {
+      this.toast.error('Sélectionnez une caisse.');
+      return;
+    }
     this.actionLoading.set(true);
     this.financeService.openSession(this.openForm).subscribe({
       next: () => { this.toast.success('Session ouverte.'); this.showOpenPanel.set(false); this.load(); this.actionLoading.set(false); },
-      error: () => { this.toast.error('Erreur.'); this.actionLoading.set(false); },
+      error: (e) => {
+        const msg = e?.error?.detail || e?.error?.caisse?.[0] || 'Erreur.';
+        this.toast.error(msg);
+        this.actionLoading.set(false);
+      },
     });
   }
 
   openCloseModal(session: CashSession): void {
     this.selectedSession.set(session);
-    this.closeForm = { closing_amount: session.expected_amount, note: '' };
+    this.closeForm = {
+      solde_reel: session.solde_fermeture_theorique ?? session.solde_ouverture,
+      motif_ecart: '',
+    };
     this.showClosePanel.set(true);
   }
 
@@ -59,7 +81,11 @@ export class Finance implements OnInit {
     this.actionLoading.set(true);
     this.financeService.closeSession(s.id, this.closeForm).subscribe({
       next: () => { this.toast.success('Session clôturée.'); this.showClosePanel.set(false); this.load(); this.actionLoading.set(false); },
-      error: () => { this.toast.error('Erreur.'); this.actionLoading.set(false); },
+      error: (e) => {
+        const msg = e?.error?.detail || e?.error?.non_field_errors?.[0] || 'Erreur.';
+        this.toast.error(msg);
+        this.actionLoading.set(false);
+      },
     });
   }
 

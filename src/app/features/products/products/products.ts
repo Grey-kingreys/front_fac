@@ -1,3 +1,12 @@
+// ============================================================
+// PRODUCTS COMPONENT — Version finale compatible
+// Chemin : src/app/features/products/products/products.ts
+//
+// CORRECTION : utilise les champs de l'interface Product existante
+// (name, selling_price, purchase_price, tva_rate, unit, category)
+// PAS les champs backend (nom, prix_vente, etc.)
+// Le service products.ts fait le mapping automatiquement.
+// ============================================================
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -16,31 +25,33 @@ export class Products implements OnInit {
 
   readonly PAGE_SIZE = 20;
 
-  products = signal<Product[]>([]);
-  total = signal(0);
-  loading = signal(false);
-  page = signal(1);
+  products   = signal<Product[]>([]);
+  total      = signal(0);
+  loading    = signal(false);
+  page       = signal(1);
 
   totalPages = computed(() => Math.max(1, Math.ceil(this.total() / this.PAGE_SIZE)));
-  hasPrev = computed(() => this.page() > 1);
-  hasNext = computed(() => this.page() < this.totalPages());
-  pageStart = computed(() => Math.min((this.page() - 1) * this.PAGE_SIZE + 1, this.total()));
-  pageEnd = computed(() => Math.min(this.page() * this.PAGE_SIZE, this.total()));
+  hasPrev    = computed(() => this.page() > 1);
+  hasNext    = computed(() => this.page() < this.totalPages());
+  pageStart  = computed(() => Math.min((this.page() - 1) * this.PAGE_SIZE + 1, this.total()));
+  pageEnd    = computed(() => Math.min(this.page() * this.PAGE_SIZE, this.total()));
 
   search = '';
   private searchTimer: ReturnType<typeof setTimeout> | null = null;
 
-  showPanel = signal(false);
-  isEditing = signal(false);
-  editingId = signal<number | null>(null);
-  panelLoading = signal(false);
+  showPanel     = signal(false);
+  isEditing     = signal(false);
+  editingId     = signal<number | null>(null);
+  panelLoading  = signal(false);
 
+  // Utilise les champs anglais de ProductPayload (compatibles avec products.html existant)
   formData: ProductPayload = {
-    name: '', reference: '', description: '', category: '',
-    unit: 'pièce', purchase_price: 0, selling_price: 0, tva_rate: 18,
+    name: '', reference: '', description: '',
+    category: '', unit: 'pièce',
+    purchase_price: 0, selling_price: 0, tva_rate: 18,
   };
 
-  deleteTarget = signal<Product | null>(null);
+  deleteTarget  = signal<Product | null>(null);
   deleteLoading = signal(false);
 
   readonly units = ['pièce', 'kg', 'litre', 'carton', 'sac', 'tonne', 'mètre', 'lot'];
@@ -70,9 +81,11 @@ export class Products implements OnInit {
   openCreate(): void {
     this.isEditing.set(false);
     this.editingId.set(null);
+    // Champs anglais — le service convertit vers backend
     this.formData = {
-      name: '', reference: '', description: '', category: '',
-      unit: 'pièce', purchase_price: 0, selling_price: 0, tva_rate: 18,
+      name: '', reference: '', description: '',
+      category: '', unit: 'pièce',
+      purchase_price: 0, selling_price: 0, tva_rate: 18,
     };
     this.showPanel.set(true);
   }
@@ -80,15 +93,16 @@ export class Products implements OnInit {
   openEdit(product: Product): void {
     this.isEditing.set(true);
     this.editingId.set(product.id);
+    // product.name, product.selling_price etc. sont les champs mappés par le service
     this.formData = {
-      name: product.name,
-      reference: product.reference,
-      description: product.description || '',
-      category: product.category || '',
-      unit: product.unit,
+      name:           product.name,
+      reference:      product.reference,
+      description:    product.description || '',
+      category:       product.category || '',
+      unit:           product.unit,
       purchase_price: product.purchase_price,
-      selling_price: product.selling_price,
-      tva_rate: product.tva_rate,
+      selling_price:  product.selling_price,
+      tva_rate:       product.tva_rate,
     };
     this.showPanel.set(true);
   }
@@ -96,17 +110,20 @@ export class Products implements OnInit {
   closePanel(): void { this.showPanel.set(false); }
 
   canSave(): boolean {
-    return !!(this.formData.name.trim() && this.formData.reference.trim() && this.formData.selling_price > 0);
+    // Utilise les champs anglais de ProductPayload
+    return !!(
+      this.formData.name?.trim() &&
+      this.formData.reference.trim() &&
+      this.formData.selling_price > 0
+    );
   }
 
   save(): void {
     if (!this.canSave()) return;
     this.panelLoading.set(true);
-
     const obs = this.isEditing()
       ? this.productsService.update(this.editingId()!, this.formData)
       : this.productsService.create(this.formData);
-
     obs.subscribe({
       next: () => {
         this.toast.success(this.isEditing() ? 'Produit mis à jour.' : 'Produit créé.');
@@ -135,7 +152,7 @@ export class Products implements OnInit {
   formatPrice(price: number): string {
     return new Intl.NumberFormat('fr-GN', {
       style: 'currency', currency: 'GNF', minimumFractionDigits: 0,
-    }).format(price);
+    }).format(price || 0);
   }
 
   extractError(err: unknown, fallback: string): string {

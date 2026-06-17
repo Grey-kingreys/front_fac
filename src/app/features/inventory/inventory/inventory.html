@@ -1,30 +1,49 @@
 <!-- ============================================================
-     STOCKS & MOUVEMENTS
+     STOCKS & MOUVEMENTS — Template mis à jour
      Chemin : src/app/features/inventory/inventory/inventory.html
-     Connecté à : InventoryService → /api/inventory/
+
+     CHAMPS CORRIGÉS (backend réel Django) :
+       stock.product_name      → stock.produit_nom
+       stock.product_reference → stock.produit_reference
+       stock.depot_name        → stock.depot_nom
+       stock.quantity          → stock.quantite
+       stock.alert_threshold   → stock.seuil_alerte
+       stock.is_low            → stock.en_alerte
+       stock.unit              → stock.unite_symbole
+       movement.movement_type  → movement.type_mouvement
+       movement.quantity       → movement.quantite
+       movement.reason         → movement.motif
+       movement.user_name      → movement.utilisateur_nom
+     COMPOSANT : inventory.ts (version corrigée)
+       showLowOnly → filterLow
+       showMovementPanel → showMovement
+       movementData.quantity → movementData.quantite
+       movementData.reason → movementData.motif
+       movementData.movement_type → movementData.movement_type (inchangé)
      ============================================================ -->
 
 <!-- En-tête -->
-<div class="flex items-center justify-between mb-6">
+<div class="mb-6 flex items-start justify-between gap-4">
   <div>
     <h1 class="text-2xl font-bold text-gray-900">Stocks</h1>
-    <p class="text-sm text-gray-500 mt-0.5">{{ total() }} article{{ total() !== 1 ? 's' : '' }} en stock</p>
+    <p class="text-sm text-gray-500 mt-1">{{ total() }} article{{ total() > 1 ? 's' : '' }} en stock</p>
   </div>
 </div>
 
 <!-- Filtres -->
-<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-4 flex flex-wrap gap-3 items-center">
-  <div class="relative flex-1 min-w-[200px]">
-    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35"/></svg>
-    <input type="text" [(ngModel)]="search" (ngModelChange)="onSearch()"
-      placeholder="Rechercher un produit…"
-      class="w-full pl-9 pr-4 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"/>
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-4">
+  <div class="flex flex-wrap gap-3 items-center">
+    <div class="relative flex-1 min-w-[220px]">
+      <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.35-4.35"/></svg>
+      <input type="text" placeholder="Rechercher un produit…" [(ngModel)]="search" (ngModelChange)="onSearch()"
+        class="w-full pl-9 pr-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"/>
+    </div>
+    <label class="flex items-center gap-2 cursor-pointer select-none">
+      <input type="checkbox" [(ngModel)]="filterLow" (ngModelChange)="page.set(1); load()"
+        class="w-4 h-4 rounded accent-red-600"/>
+      <span class="text-sm font-medium text-gray-600">Stock faible uniquement</span>
+    </label>
   </div>
-  <label class="flex items-center gap-2 cursor-pointer select-none">
-    <input type="checkbox" [(ngModel)]="filterLow" (ngModelChange)="page.set(1); load()"
-      class="w-4 h-4 rounded text-red-600 accent-red-600"/>
-    <span class="text-sm text-gray-600 font-medium">Stock faible uniquement</span>
-  </label>
 </div>
 
 <!-- Tableau stocks -->
@@ -34,17 +53,15 @@
       <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
       Chargement…
     </div>
-  }
-  @if (!loading() && stocks().length === 0) {
+  } @else if (stocks().length === 0) {
     <div class="flex flex-col items-center justify-center py-20 text-center px-6">
       <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mb-4">
         <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
       </div>
       <p class="font-semibold text-gray-700 mb-1">Aucun article en stock</p>
-      <p class="text-sm text-gray-400">Ajoutez des produits et effectuez des entrées de stock.</p>
+      <p class="text-sm text-gray-400">Effectuez des entrées de stock pour les voir ici.</p>
     </div>
-  }
-  @if (!loading() && stocks().length > 0) {
+  } @else {
     <table class="w-full text-sm">
       <thead>
         <tr class="border-b border-gray-100 bg-slate-50/60">
@@ -59,33 +76,38 @@
       </thead>
       <tbody class="divide-y divide-gray-50">
         @for (stock of stocks(); track stock.id) {
-          <tr class="hover:bg-slate-50/50 transition-colors">
+          <tr class="hover:bg-slate-50/50 transition-colors" [class.bg-red-50/30]="stock.en_alerte">
             <td class="px-5 py-3.5">
               <div class="flex items-center gap-3">
                 <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white text-xs font-bold shrink-0"
-                  [class]="stock.is_low ? 'bg-gradient-to-br from-red-400 to-red-500' : 'bg-gradient-to-br from-teal-500 to-emerald-500'">
-                  {{ stock.product_name[0].toUpperCase() }}
+                  [class]="stock.en_alerte ? 'bg-gradient-to-br from-red-400 to-red-500' : 'bg-gradient-to-br from-teal-500 to-emerald-500'">
+                  {{ stock.produit_nom[0].toUpperCase() }}
                 </div>
                 <div>
-                  <p class="font-semibold text-gray-900">{{ stock.product_name }}</p>
-                  <p class="text-xs text-gray-400 font-mono">{{ stock.product_reference }}</p>
+                  <p class="font-semibold text-gray-900">{{ stock.produit_nom }}</p>
+                  <p class="text-xs text-gray-400 font-mono">{{ stock.produit_reference }}</p>
                 </div>
               </div>
             </td>
             <td class="px-4 py-3.5 hidden md:table-cell">
-              <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 text-xs font-medium">
-                {{ stock.depot_name }}
+              <div>
+                <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 text-xs font-medium">
+                  {{ stock.depot_nom }}
+                </span>
+                <p class="text-xs text-gray-400 mt-0.5">{{ stock.zone_nom }}</p>
+              </div>
+            </td>
+            <td class="px-4 py-3.5 text-right">
+              <span class="font-bold tabular-nums"
+                [class]="stock.en_alerte ? 'text-red-600' : 'text-gray-900'">
+                {{ formatQty(stock.quantite, stock.unite_symbole) }}
               </span>
             </td>
-            <td class="px-4 py-3.5 text-right font-bold tabular-nums"
-              [class]="stock.is_low ? 'text-red-600' : 'text-gray-900'">
-              {{ formatQty(stock.quantity, stock.unit) }}
-            </td>
             <td class="px-4 py-3.5 text-right text-gray-400 tabular-nums text-xs hidden lg:table-cell">
-              {{ formatQty(stock.alert_threshold, stock.unit) }}
+              {{ formatQty(stock.seuil_alerte, stock.unite_symbole) }}
             </td>
             <td class="px-4 py-3.5 text-center">
-              @if (stock.is_low) {
+              @if (stock.en_alerte) {
                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-200">
                   <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>Stock faible
                 </span>
@@ -108,6 +130,7 @@
         }
       </tbody>
     </table>
+
     @if (totalPages() > 1) {
       <div class="flex items-center justify-between px-5 py-3 border-t border-gray-100 bg-slate-50/40">
         <p class="text-xs text-gray-500">{{ pageStart() }}–{{ pageEnd() }} sur <span class="font-semibold text-gray-700">{{ total() }}</span></p>
@@ -125,7 +148,7 @@
 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
   <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
     <h2 class="text-base font-bold text-gray-900">Mouvements récents</h2>
-    <span class="text-xs text-gray-400">{{ movements().length }} derniers mouvements</span>
+    <span class="text-xs text-gray-400">{{ movements().length }} derniers</span>
   </div>
   @if (movements().length === 0) {
     <p class="text-sm text-gray-400 text-center py-10">Aucun mouvement enregistré.</p>
@@ -133,31 +156,37 @@
     <div class="divide-y divide-gray-50">
       @for (m of movements(); track m.id) {
         <div class="flex items-center gap-4 px-5 py-3">
+          <!-- Icône selon type_mouvement (vrais valeurs backend) -->
           <div class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
             [class]="{
-              'entry': 'bg-emerald-100',
-              'exit': 'bg-red-100',
-              'adjustment': 'bg-amber-100',
-              'transfer': 'bg-blue-100'
-            }[m.movement_type] || 'bg-gray-100'">
-            @if (m.movement_type === 'entry') {
+              'entree':      'bg-emerald-100',
+              'sortie':      'bg-red-100',
+              'ajustement':  'bg-amber-100',
+              'transfert':   'bg-blue-100'
+            }[m.type_mouvement] || 'bg-gray-100'">
+            @if (m.type_mouvement === 'entree') {
               <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-            } @else if (m.movement_type === 'exit') {
+            } @else if (m.type_mouvement === 'sortie') {
               <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M20 12H4"/></svg>
-            } @else if (m.movement_type === 'transfer') {
+            } @else if (m.type_mouvement === 'transfert') {
               <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
             } @else {
               <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
             }
           </div>
           <div class="flex-1 min-w-0">
-            <p class="text-sm font-semibold text-gray-900 truncate">{{ m.product_name }}</p>
-            <p class="text-xs text-gray-400">{{ m.reason || 'Sans motif' }} · {{ m.user_name }}</p>
+            <p class="text-sm font-semibold text-gray-900 truncate">{{ m.produit_nom }}</p>
+            <p class="text-xs text-gray-400">{{ m.motif || 'Sans motif' }} · {{ m.utilisateur_nom }}</p>
           </div>
           <div class="text-right shrink-0">
             <p class="text-sm font-bold tabular-nums"
-              [class]="m.movement_type === 'entry' ? 'text-emerald-600' : m.movement_type === 'exit' ? 'text-red-600' : 'text-amber-600'">
-              {{ m.movement_type === 'entry' ? '+' : m.movement_type === 'exit' ? '-' : '±' }}{{ m.quantity }}
+              [class]="{
+                'entree':    'text-emerald-600',
+                'sortie':    'text-red-600',
+                'ajustement':'text-amber-600',
+                'transfert': 'text-blue-600'
+              }[m.type_mouvement] || 'text-gray-600'">
+              {{ m.type_mouvement === 'entree' ? '+' : m.type_mouvement === 'sortie' ? '-' : '±' }}{{ m.quantite }}
             </p>
             <p class="text-xs text-gray-400">{{ m.created_at | date:'dd/MM HH:mm' }}</p>
           </div>
@@ -169,6 +198,7 @@
 
 <!-- ============================================================
      PANNEAU — Enregistrer un mouvement de stock
+     Utilise movementData.quantite, movementData.motif (vrais champs)
      ============================================================ -->
 @if (showMovement()) {
   <div class="fixed inset-0 bg-black/40 z-40 backdrop-blur-sm" (click)="closeMovement()"></div>
@@ -176,7 +206,7 @@
     <div class="flex items-center justify-between px-6 py-5 border-b border-gray-100 shrink-0">
       <div>
         <h2 class="text-lg font-bold text-gray-900">Enregistrer un mouvement</h2>
-        <p class="text-xs text-gray-500 mt-0.5 font-medium">{{ selectedStock()?.product_name }}</p>
+        <p class="text-xs text-gray-500 mt-0.5 font-medium">{{ selectedStock()?.produit_nom }}</p>
       </div>
       <button type="button" (click)="closeMovement()" class="p-2 rounded-xl text-gray-400 hover:bg-gray-100 transition-colors">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -186,14 +216,19 @@
     <div class="flex-1 overflow-y-auto px-6 py-5 space-y-5">
       <!-- Stock actuel -->
       <div class="rounded-xl p-4 bg-slate-50 border border-slate-200 flex items-center justify-between">
-        <span class="text-sm text-gray-600">Stock actuel</span>
-        <span class="text-xl font-bold text-gray-900">{{ formatQty(selectedStock()?.quantity ?? 0, selectedStock()?.unit ?? '') }}</span>
+        <div>
+          <p class="text-xs text-gray-500">Stock actuel</p>
+          <p class="text-xs text-gray-400">{{ selectedStock()?.depot_nom }}</p>
+        </div>
+        <span class="text-xl font-bold text-gray-900">
+          {{ formatQty(selectedStock()?.quantite ?? 0, selectedStock()?.unite_symbole ?? '') }}
+        </span>
       </div>
 
-      <!-- Type de mouvement -->
+      <!-- Type de mouvement : entree / sortie (vrais valeurs backend) -->
       <div>
         <label class="block text-sm font-semibold text-gray-700 mb-2">Type de mouvement</label>
-        <div class="grid grid-cols-3 gap-2">
+        <div class="grid grid-cols-2 gap-2">
           <button type="button" (click)="movementData.movement_type = 'entry'"
             class="py-3 rounded-xl border-2 text-sm font-semibold transition-all flex flex-col items-center gap-1"
             [class]="movementData.movement_type === 'entry' ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-gray-200 text-gray-500 hover:border-gray-300'">
@@ -206,47 +241,37 @@
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M20 12H4"/></svg>
             Sortie
           </button>
-          <button type="button" (click)="movementData.movement_type = 'adjustment'"
-            class="py-3 rounded-xl border-2 text-sm font-semibold transition-all flex flex-col items-center gap-1"
-            [class]="movementData.movement_type === 'adjustment' ? 'border-amber-500 bg-amber-50 text-amber-700' : 'border-gray-200 text-gray-500 hover:border-gray-300'">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-            Ajustement
-          </button>
         </div>
       </div>
 
-      <!-- Quantité -->
+      <!-- Quantité → movementData.quantite -->
       <div>
         <label class="block text-sm font-semibold text-gray-700 mb-1.5">
-          Quantité <span class="text-gray-400 font-normal">({{ selectedStock()?.unit }})</span>
+          Quantité <span class="text-gray-400 font-normal">({{ selectedStock()?.unite_symbole }})</span>
         </label>
-        <input type="number" [(ngModel)]="movementData.quantity" min="1" placeholder="0"
+        <input type="number" [(ngModel)]="movementData.quantite" min="1" placeholder="0"
           class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm font-mono text-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"/>
       </div>
 
-      <!-- Motif -->
+      <!-- Motif → movementData.motif -->
       <div>
-        <label class="block text-sm font-semibold text-gray-700 mb-1.5">
-          Motif {{ movementData.movement_type === 'adjustment' ? '(obligatoire)' : '(optionnel)' }}
-        </label>
-        <textarea [(ngModel)]="movementData.reason" rows="3"
-          placeholder="Ex: Réception fournisseur, vente directe, inventaire physique…"
+        <label class="block text-sm font-semibold text-gray-700 mb-1.5">Motif (optionnel)</label>
+        <textarea [(ngModel)]="movementData.motif" rows="3"
+          placeholder="Ex: Réception fournisseur, inventaire, vente directe…"
           class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"></textarea>
       </div>
 
       <!-- Aperçu résultat -->
-      @if (movementData.quantity > 0 && selectedStock()) {
+      @if (movementData.quantite > 0 && selectedStock()) {
         <div class="rounded-xl p-4 border"
-          [class]="movementData.movement_type === 'entry' ? 'bg-emerald-50 border-emerald-200' : movementData.movement_type === 'exit' ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200'">
+          [class]="movementData.movement_type === 'entry' ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'">
           <p class="text-xs font-semibold text-gray-500 mb-1">Nouveau stock estimé</p>
           <p class="text-2xl font-bold"
-            [class]="movementData.movement_type === 'entry' ? 'text-emerald-700' : movementData.movement_type === 'exit' ? 'text-red-700' : 'text-amber-700'">
+            [class]="movementData.movement_type === 'entry' ? 'text-emerald-700' : 'text-red-700'">
             {{ movementData.movement_type === 'entry'
-              ? (selectedStock()!.quantity + movementData.quantity)
-              : movementData.movement_type === 'exit'
-                ? (selectedStock()!.quantity - movementData.quantity)
-                : movementData.quantity }}
-            {{ selectedStock()!.unit }}
+              ? (selectedStock()!.quantite + movementData.quantite)
+              : (selectedStock()!.quantite - movementData.quantite) }}
+            {{ selectedStock()!.unite_symbole }}
           </p>
         </div>
       }
@@ -254,9 +279,9 @@
 
     <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/50 shrink-0 flex gap-3">
       <button type="button" (click)="closeMovement()" class="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors">Annuler</button>
-      <button type="button" (click)="saveMovement()" [disabled]="movementData.quantity <= 0 || movementLoading()"
+      <button type="button" (click)="saveMovement()" [disabled]="movementData.quantite <= 0 || movementLoading()"
         class="flex-1 py-2.5 rounded-xl text-white text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-        [class]="movementData.movement_type === 'entry' ? 'bg-emerald-600 hover:bg-emerald-700' : movementData.movement_type === 'exit' ? 'bg-red-600 hover:bg-red-700' : 'bg-amber-600 hover:bg-amber-700'">
+        [class]="movementData.movement_type === 'entry' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-red-600 hover:bg-red-700'">
         @if (movementLoading()) {
           <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
         }

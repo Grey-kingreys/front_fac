@@ -1,8 +1,6 @@
 // ============================================================
-// LOGISTIQUE — logistics.ts corrigé
+// LOGISTICS COMPONENT — Mis à jour pour les vrais champs backend
 // Chemin : src/app/features/logistics/logistics/logistics.ts
-// Import correct : logistics.service.ts (avec .service)
-// Champs Vehicle corrects : registration, capacity (pas plate_number/capacity_kg)
 // ============================================================
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -21,7 +19,6 @@ export class Logistics implements OnInit {
   private toast = inject(ToastService);
 
   activeTab = signal<'missions' | 'vehicles'>('missions');
-
   missions = signal<Mission[]>([]);
   vehicles = signal<Vehicle[]>([]);
   loading = signal(false);
@@ -34,30 +31,29 @@ export class Logistics implements OnInit {
   hasPrev = computed(() => this.page() > 1);
   hasNext = computed(() => this.page() < this.totalPages());
 
+  // Vrais statuts backend : 'planifiee'|'chargement'|'en_transit'|'arrivee'|'litige'|'terminee'
   activeMissions = computed(() =>
-    this.missions().filter(m => ['planned', 'loading', 'in_transit'].includes(m.status)).length
+    this.missions().filter(m => ['planifiee', 'chargement', 'en_transit'].includes(m.statut)).length
   );
   availableVehiclesCount = computed(() =>
-    this.vehicles().filter(v => v.status === 'available').length
+    this.vehicles().filter(v => v.statut === 'disponible').length
   );
 
   actionLoading = signal(false);
-
-  // Véhicule panel
   showVehiclePanel = signal(false);
   isEditingVehicle = signal(false);
   editingVehicleId = signal<number | null>(null);
-  vehicleForm: Partial<Vehicle> = { registration: '', brand: '', model: '', year: 2020, capacity: 0 };
+  vehicleForm: Partial<Vehicle> = { immatriculation: '', marque: '', modele: '', annee: 2020, capacite_kg: 0 };
 
   ngOnInit(): void { this.loadMissions(); }
 
   loadMissions(): void {
     this.loading.set(true);
-    const params: { page?: number; status?: MissionStatus } = { page: this.page() };
-    if (this.missionStatus()) params.status = this.missionStatus() as MissionStatus;
+    const params: { page: number; statut?: MissionStatus } = { page: this.page() };
+    if (this.missionStatus()) params.statut = this.missionStatus() as MissionStatus;
     this.logisticsService.listMissions(params).subscribe({
       next: (res) => { this.missions.set(res.results); this.total.set(res.count); this.loading.set(false); },
-      error: () => { this.toast.error('Erreur lors du chargement des missions.'); this.loading.set(false); },
+      error: () => { this.toast.error('Erreur lors du chargement.'); this.loading.set(false); },
     });
   }
 
@@ -65,19 +61,18 @@ export class Logistics implements OnInit {
     this.loading.set(true);
     this.logisticsService.listVehicles({ page: this.page() }).subscribe({
       next: (res) => { this.vehicles.set(res.results); this.total.set(res.count); this.loading.set(false); },
-      error: () => { this.toast.error('Erreur lors du chargement des véhicules.'); this.loading.set(false); },
+      error: () => { this.toast.error('Erreur.'); this.loading.set(false); },
     });
   }
 
   switchTab(tab: 'missions' | 'vehicles'): void {
     this.activeTab.set(tab);
     this.page.set(1);
-    if (tab === 'missions') this.loadMissions();
-    else this.loadVehicles();
+    tab === 'missions' ? this.loadMissions() : this.loadVehicles();
   }
 
   advanceMission(mission: Mission): void {
-    const next = this.getNextStatus(mission.status);
+    const next = this.getNextStatus(mission.statut);
     if (!next) return;
     this.actionLoading.set(true);
     this.logisticsService.updateMissionStatus(mission.id, next).subscribe({
@@ -86,34 +81,32 @@ export class Logistics implements OnInit {
     });
   }
 
-  openCreateMission(): void { this.toast.info?.('Fonctionnalité en cours de développement.'); }
+  openCreateMission(): void { this.toast.info?.('Création de mission en cours de développement.'); }
 
   openCreateVehicle(): void {
     this.isEditingVehicle.set(false);
     this.editingVehicleId.set(null);
-    this.vehicleForm = { registration: '', brand: '', model: '', year: 2020, capacity: 0 };
+    this.vehicleForm = { immatriculation: '', marque: '', modele: '', annee: 2020, capacite_kg: 0 };
     this.showVehiclePanel.set(true);
   }
 
   openEditVehicle(v: Vehicle): void {
     this.isEditingVehicle.set(true);
     this.editingVehicleId.set(v.id);
-    this.vehicleForm = { registration: v.registration, brand: v.brand, model: v.model, year: v.year, capacity: v.capacity };
+    this.vehicleForm = { immatriculation: v.immatriculation, marque: v.marque, modele: v.modele, annee: v.annee, capacite_kg: v.capacite_kg };
     this.showVehiclePanel.set(true);
   }
 
   closeVehiclePanel(): void { this.showVehiclePanel.set(false); }
 
   saveVehicle(): void {
-    if (!this.vehicleForm.registration) return;
+    if (!this.vehicleForm.immatriculation) return;
     this.actionLoading.set(true);
-    this.logisticsService.createVehicle(this.vehicleForm).subscribe({
-      next: () => {
-        this.toast.success('Véhicule ajouté.');
-        this.closeVehiclePanel();
-        this.loadVehicles();
-        this.actionLoading.set(false);
-      },
+    const obs = this.isEditingVehicle()
+      ? this.logisticsService.updateVehicle(this.editingVehicleId()!, this.vehicleForm)
+      : this.logisticsService.createVehicle(this.vehicleForm);
+    obs.subscribe({
+      next: () => { this.toast.success(this.isEditingVehicle() ? 'Véhicule mis à jour.' : 'Véhicule ajouté.'); this.closeVehiclePanel(); this.loadVehicles(); this.actionLoading.set(false); },
       error: () => { this.toast.error('Erreur.'); this.actionLoading.set(false); },
     });
   }
@@ -121,54 +114,35 @@ export class Logistics implements OnInit {
   prevPage(): void { if (this.hasPrev()) { this.page.update(p => p - 1); this.activeTab() === 'missions' ? this.loadMissions() : this.loadVehicles(); } }
   nextPage(): void { if (this.hasNext()) { this.page.update(p => p + 1); this.activeTab() === 'missions' ? this.loadMissions() : this.loadVehicles(); } }
 
+  // Vrais statuts backend
   getStatusLabel(s: string): string {
-    const m: Record<string, string> = { planned: 'Planifiée', loading: 'Chargement', in_transit: 'En transit', arrived: 'Arrivée', dispute: 'Litige', completed: 'Complétée' };
-    return m[s] || s;
+    return { planifiee: 'Planifiée', chargement: 'Chargement', en_transit: 'En transit', arrivee: 'Arrivée', litige: 'Litige', terminee: 'Terminée' }[s] || s;
   }
 
   getStatusClass(s: string): string {
-    const m: Record<string, string> = {
-      planned: 'bg-blue-50 text-blue-700 border-blue-200',
-      loading: 'bg-amber-50 text-amber-700 border-amber-200',
-      in_transit: 'bg-purple-50 text-purple-700 border-purple-200',
-      arrived: 'bg-teal-50 text-teal-700 border-teal-200',
-      completed: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      dispute: 'bg-red-50 text-red-700 border-red-200',
-    };
-    return m[s] || 'bg-gray-100 text-gray-600 border-gray-200';
+    return {
+      planifiee: 'bg-blue-50 text-blue-700 border-blue-200',
+      chargement: 'bg-amber-50 text-amber-700 border-amber-200',
+      en_transit: 'bg-purple-50 text-purple-700 border-purple-200',
+      arrivee: 'bg-teal-50 text-teal-700 border-teal-200',
+      terminee: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      litige: 'bg-red-50 text-red-700 border-red-200',
+    }[s] || 'bg-gray-100 text-gray-600 border-gray-200';
   }
 
   getVehicleStatusClass(s: string): string {
-    const m: Record<string, string> = {
-      available: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      in_mission: 'bg-blue-50 text-blue-700 border-blue-200',
-      maintenance: 'bg-amber-50 text-amber-700 border-amber-200',
-    };
-    return m[s] || '';
+    return { disponible: 'bg-emerald-50 text-emerald-700 border-emerald-200', en_mission: 'bg-blue-50 text-blue-700 border-blue-200', maintenance: 'bg-amber-50 text-amber-700 border-amber-200', hors_service: 'bg-red-50 text-red-700 border-red-200' }[s] || '';
   }
 
   getVehicleStatusLabel(s: string): string {
-    const m: Record<string, string> = { available: 'Disponible', in_mission: 'En mission', maintenance: 'Maintenance' };
-    return m[s] || s;
+    return { disponible: 'Disponible', en_mission: 'En mission', maintenance: 'Maintenance', hors_service: 'Hors service' }[s] || s;
   }
 
   getNextStatus(s: MissionStatus): MissionStatus | null {
-    const m: Partial<Record<MissionStatus, MissionStatus>> = {
-      planned: 'loading',
-      loading: 'in_transit',
-      in_transit: 'arrived',
-      arrived: 'completed',
-    };
-    return m[s] || null;
+    return ({ planifiee: 'chargement', chargement: 'en_transit', en_transit: 'arrivee', arrivee: 'terminee' } as Partial<Record<MissionStatus, MissionStatus>>)[s] || null;
   }
 
   getNextStatusLabel(s: MissionStatus): string {
-    const m: Partial<Record<MissionStatus, string>> = {
-      planned: 'Démarrer',
-      loading: 'En transit',
-      in_transit: 'Arrivée',
-      arrived: 'Compléter',
-    };
-    return m[s] || '';
+    return ({ planifiee: 'Démarrer', chargement: 'En transit', en_transit: 'Arrivée', arrivee: 'Terminer' } as Partial<Record<MissionStatus, string>>)[s] || '';
   }
 }
