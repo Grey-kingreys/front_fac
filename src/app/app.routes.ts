@@ -42,6 +42,10 @@ export const routes: Routes = [
                 loadComponent: () => import('./features/profile/profile').then(m => m.Profile),
             },
             {
+                path: 'produits',
+                loadComponent: () => import('./features/products/products/products').then(m => m.Products),
+            },
+            {
                 path: 'stocks',
                 loadComponent: () => import('./features/inventory/inventory/inventory').then(m => m.Inventory),
             },
@@ -62,6 +66,18 @@ export const routes: Routes = [
                 loadComponent: () => import('./features/hr/hr/hr').then(m => m.Hr),
             },
             {
+                path: 'fournisseurs',
+                loadComponent: () => import('./features/suppliers/suppliers/suppliers').then(m => m.Suppliers),
+            },
+            {
+                path: 'rapports',
+                loadComponent: () => import('./features/reports/reports/reports').then(m => m.Reports),
+            },
+            {
+                path: 'documents',
+                loadComponent: () => import('./features/documents/documents/documents').then(m => m.Documents),
+            },
+            {
                 path: 'companies',
                 canActivate: [roleGuard],
                 data: { roles: ['superadmin'] },
@@ -72,6 +88,12 @@ export const routes: Routes = [
                 canActivate: [roleGuard],
                 data: { roles: ['admin', 'superadmin'] },
                 loadComponent: () => import('./features/admin/users/users').then(m => m.Users),
+            },
+            {
+                path: 'zones',
+                canActivate: [roleGuard],
+                data: { roles: ['admin', 'superadmin'] },
+                loadComponent: () => import('./features/zones/zones/zones').then(m => m.Zones),
             },
             {
                 path: 'forbidden',
