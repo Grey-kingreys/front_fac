@@ -25,6 +25,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/auth/first-login/first-login').then(m => m.FirstLogin),
     },
     {
+        path: 'verify-2fa',
+        loadComponent: () => import('./features/auth/verify-2fa/verify-2fa').then(m => m.VerifyTwoFactor),
+    },
+    {
         path: '',
         canActivate: [authGuard],
         loadComponent: () => import('./shared/layout/app-layout/app-layout').then(m => m.AppLayout),

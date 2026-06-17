@@ -493,7 +493,7 @@ Chaque niveau consolide automatiquement les fonds du niveau inférieur à sa fer
 | **NFC véhicules** | Requiert puce NFC physique sur chaque véhicule |
 | **Scan code-barres** | Via API caméra navigateur mobile |
 | **IA / prévisions** | Prévisions ventes, suggestions réapprovisionnement, détection anomalies |
-| **2FA** | JWT + blocage compte couvre les besoins de base |
+| ~~**2FA**~~ | ✅ Implémenté (17/06) — voir section 2FA ci-dessous |
 | **Cartographie avancée** | Polygones zones avec Leaflet.draw |
 
 ## Architecture Technique (CDC §7)

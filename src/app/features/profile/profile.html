@@ -84,7 +84,7 @@
     </div>
 
     <!-- Actions -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
 
       <!-- Modifier le profil -->
       <button
@@ -122,9 +122,365 @@
 
     </div>
 
+    <!-- ── Carte 2FA ──────────────────────────────────────────────────────────── -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+      <div class="flex items-start justify-between gap-4">
+        <div class="flex items-start gap-3">
+          <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
+            <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+            </svg>
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-gray-900">Authentification à deux facteurs</p>
+            @if (user.two_factor_enabled) {
+              <div class="flex items-center gap-2 mt-1">
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  Activée
+                </span>
+                <span class="text-xs text-gray-400">
+                  {{ user.two_factor_method === 'totp' ? 'via Authy / application' : 'via email' }}
+                </span>
+              </div>
+            } @else {
+              <div class="flex items-center gap-2 mt-1">
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-50 text-gray-500 border border-gray-200">
+                  <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+                  Désactivée
+                </span>
+              </div>
+              <p class="text-xs text-gray-400 mt-1">Protégez votre compte avec un code à usage unique.</p>
+            }
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex gap-2 shrink-0">
+          @if (user.two_factor_enabled) {
+            <button
+              type="button"
+              (click)="openSetup2faModal()"
+              class="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+            >
+              Changer
+            </button>
+            <button
+              type="button"
+              (click)="openDisable2faModal()"
+              class="px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+            >
+              Désactiver
+            </button>
+          } @else {
+            <button
+              type="button"
+              (click)="openSetup2faModal()"
+              class="px-3 py-1.5 text-xs font-semibold text-white bg-emerald-500 hover:bg-emerald-600 rounded-lg transition-colors shadow-sm"
+            >
+              Activer
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+
   }
 
 </div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<!-- Modal — Configurer la 2FA                                                  -->
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+@if (showSetup2faModal()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" (click)="closeSetup2faModal()"></div>
+
+    <div class="relative w-full max-w-md bg-white rounded-2xl shadow-xl">
+
+      <!-- En-tête -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <h2 class="text-lg font-semibold text-gray-900">
+          {{ setup2faStep() === 'select' ? 'Activer la 2FA' : 'Confirmer le code' }}
+        </h2>
+        <button type="button" (click)="closeSetup2faModal()" class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="px-6 py-5">
+
+        <!-- Succès -->
+        @if (setup2faSuccess()) {
+          <div class="flex flex-col items-center gap-3 py-4">
+            <div class="w-14 h-14 bg-emerald-100 rounded-2xl flex items-center justify-center">
+              <svg class="w-7 h-7 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+            </div>
+            <p class="text-sm font-semibold text-emerald-700">2FA activée avec succès !</p>
+          </div>
+        }
+
+        @if (!setup2faSuccess()) {
+
+          <!-- Étape 1 : choix méthode -->
+          @if (setup2faStep() === 'select') {
+            <p class="text-sm text-gray-500 mb-4">Choisissez comment recevoir vos codes de vérification :</p>
+
+            <div class="space-y-3 mb-5">
+              <!-- TOTP -->
+              <button
+                type="button"
+                (click)="setup2faMethod.set('totp')"
+                class="w-full flex items-start gap-3 p-4 rounded-xl border-2 transition-all text-left"
+                [class.border-blue-500]="setup2faMethod() === 'totp'"
+                [class.bg-blue-50]="setup2faMethod() === 'totp'"
+                [class.border-gray-200]="setup2faMethod() !== 'totp'"
+              >
+                <svg class="w-6 h-6 text-blue-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                </svg>
+                <div class="flex-1">
+                  <div class="flex items-center gap-2">
+                    <p class="text-sm font-semibold text-gray-900">Application Authy / Authenticator</p>
+                    <span class="px-1.5 py-0.5 text-xs font-bold bg-blue-600 text-white rounded">Recommandé</span>
+                  </div>
+                  <p class="text-xs text-gray-500 mt-0.5">Code généré toutes les 30 secondes, fonctionne même sans internet.</p>
+                </div>
+              </button>
+
+              <!-- Email -->
+              <button
+                type="button"
+                (click)="setup2faMethod.set('email')"
+                class="w-full flex items-start gap-3 p-4 rounded-xl border-2 transition-all text-left"
+                [class.border-blue-500]="setup2faMethod() === 'email'"
+                [class.bg-blue-50]="setup2faMethod() === 'email'"
+                [class.border-gray-200]="setup2faMethod() !== 'email'"
+              >
+                <svg class="w-6 h-6 text-gray-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+                <div>
+                  <p class="text-sm font-semibold text-gray-900">Code par email</p>
+                  <p class="text-xs text-gray-500 mt-0.5">Recevez un code à usage unique à chaque connexion.</p>
+                </div>
+              </button>
+            </div>
+
+            @if (setup2faError()) {
+              <div class="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700 mb-3">
+                {{ setup2faError() }}
+              </div>
+            }
+
+            <button
+              type="button"
+              (click)="startSetup2fa()"
+              [disabled]="setup2faLoading()"
+              class="w-full py-2.5 rounded-xl bg-blue-600 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+            >
+              @if (setup2faLoading()) {
+                <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                </svg>
+              }
+              Continuer
+            </button>
+          }
+
+          <!-- Étape 2 : vérification -->
+          @if (setup2faStep() === 'verify') {
+
+            <!-- QR code (TOTP) -->
+            @if (setup2faMethod() === 'totp' && setup2faQrCode()) {
+              <div class="text-center mb-4">
+                <p class="text-sm text-gray-600 mb-3">Scannez ce QR code avec <strong>Authy</strong> ou Google Authenticator :</p>
+                <img [src]="setup2faQrCode()" alt="QR Code 2FA" class="w-44 h-44 mx-auto rounded-xl border border-gray-100 shadow-sm" />
+                @if (setup2faSecret()) {
+                  <div class="mt-3 flex items-center gap-2 justify-center">
+                    <code class="text-xs bg-gray-100 px-3 py-1.5 rounded-lg font-mono tracking-wider text-gray-700 select-all">
+                      {{ setup2faSecret() }}
+                    </code>
+                    <button type="button" (click)="copySecret()" class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600">
+                      @if (secretCopied()) {
+                        <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                      } @else {
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                        </svg>
+                      }
+                    </button>
+                  </div>
+                }
+              </div>
+            }
+
+            <!-- Email -->
+            @if (setup2faMethod() === 'email') {
+              <div class="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-700 mb-4">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+                Un code de vérification a été envoyé à votre adresse email.
+              </div>
+            }
+
+            <p class="text-sm text-gray-600 text-center mb-3">Entrez le code à 6 chiffres pour confirmer :</p>
+
+            <!-- 6 boîtes OTP -->
+            <div class="flex gap-2 justify-center mb-4" (paste)="onSetup2faPaste($event)">
+              @for (digit of setup2faDigits(); track $index; let i = $index) {
+                <input
+                  #setup2faBox
+                  type="text"
+                  inputmode="numeric"
+                  maxlength="1"
+                  [value]="digit"
+                  (input)="onSetup2faBoxInput(i, $event)"
+                  (keydown)="onSetup2faBoxKeyDown(i, $event)"
+                  class="w-10 h-13 text-center text-xl font-bold border-2 rounded-xl outline-none transition-all
+                         focus:border-blue-500 focus:ring-2 focus:ring-blue-200
+                         border-gray-200 text-gray-900 bg-white disabled:opacity-50"
+                  [class.border-red-400]="setup2faError() !== null"
+                  [disabled]="setup2faLoading()"
+                />
+              }
+            </div>
+
+            @if (setup2faError()) {
+              <div class="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700 mb-3">
+                {{ setup2faError() }}
+              </div>
+            }
+
+            <div class="flex gap-3">
+              <button
+                type="button"
+                (click)="setup2faStep.set('select')"
+                class="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Retour
+              </button>
+              <button
+                type="button"
+                (click)="submitSetup2fa()"
+                [disabled]="setup2faCode.length !== 6 || setup2faLoading()"
+                class="flex-1 py-2.5 rounded-xl bg-emerald-500 text-sm font-semibold text-white hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+              >
+                @if (setup2faLoading()) {
+                  <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                  </svg>
+                }
+                Activer la 2FA
+              </button>
+            </div>
+          }
+        }
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<!-- Modal — Désactiver la 2FA                                                  -->
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+@if (showDisable2faModal()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" (click)="closeDisable2faModal()"></div>
+
+    <div class="relative w-full max-w-sm bg-white rounded-2xl shadow-xl">
+
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <h2 class="text-lg font-semibold text-gray-900">Désactiver la 2FA</h2>
+        <button type="button" (click)="closeDisable2faModal()" class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="px-6 py-5 space-y-4">
+
+        @if (disable2faSuccess()) {
+          <div class="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-700">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            2FA désactivée avec succès.
+          </div>
+        }
+
+        @if (!disable2faSuccess()) {
+          <div class="flex items-start gap-3 p-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-700">
+            <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Votre compte sera moins sécurisé. Entrez votre mot de passe pour confirmer.
+          </div>
+
+          @if (disable2faError()) {
+            <div class="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+              {{ disable2faError() }}
+            </div>
+          }
+
+          <div class="space-y-1.5">
+            <label class="text-sm font-medium text-gray-700">Mot de passe actuel <span class="text-red-500">*</span></label>
+            <div class="relative">
+              <input
+                [type]="showDisable2faPwd() ? 'text' : 'password'"
+                [value]="disable2faPassword()"
+                (input)="disable2faPassword.set($any($event.target).value)"
+                class="w-full px-3.5 py-2.5 pr-10 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                placeholder="Votre mot de passe"
+                (keydown.enter)="submitDisable2fa()"
+              />
+              <button type="button" (click)="showDisable2faPwd.set(!showDisable2faPwd())" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="flex gap-3 pt-1">
+            <button
+              type="button"
+              (click)="closeDisable2faModal()"
+              class="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              Annuler
+            </button>
+            <button
+              type="button"
+              (click)="submitDisable2fa()"
+              [disabled]="!disable2faPassword() || disable2faLoading()"
+              class="flex-1 py-2.5 rounded-xl bg-red-500 text-sm font-semibold text-white hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+            >
+              @if (disable2faLoading()) {
+                <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                </svg>
+              }
+              Désactiver
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}
 
 <!-- ═══════════════════════════════════════════════════════════════════════════ -->
 <!-- Modal — Modifier le profil                                                 -->
