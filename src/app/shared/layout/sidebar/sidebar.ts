@@ -46,23 +46,29 @@ export interface NavSection {
 }
 
 const NAV_ITEMS: NavItem[] = [
-
-  // ── Vue globale (tous les rôles) ──────────────────────────────────────────
+  // ── Dashboard ─────────────────────────────────────────────────────────────
   {
     path: '/dashboard',
     label: 'Tableau de bord',
     icon: 'dashboard',
-    section: 'PLATEFORME',
+    section: 'GÉNÉRAL',
     roles: ['superadmin', 'admin', 'superviseur', 'gestionnaire_stock', 'caissier', 'chauffeur', 'maintenancier', 'commercial'],
   },
 
-  // ── SuperAdmin : gestion de la plateforme SaaS ───────────────────────────
+  // ── SuperAdmin : plateforme SaaS ──────────────────────────────────────────
   {
     path: '/companies',
     label: 'Entreprises',
     icon: 'building',
     section: 'GESTION PLATEFORME',
     roles: ['superadmin'],
+  },
+  {
+  path: '/zones',
+  label: 'Zones & Dépôts',
+  icon: 'mapPin',
+  section: 'ADMINISTRATION',
+  roles: ['admin', 'superadmin'],
   },
   {
     path: '/admin',
@@ -72,7 +78,23 @@ const NAV_ITEMS: NavItem[] = [
     roles: ['superadmin'],
   },
 
-  // ── Opérations (admin, superviseur, métiers concernés) ───────────────────
+  // ── Catalogue ─────────────────────────────────────────────────────────────
+  {
+    path: '/produits',
+    label: 'Produits',
+    icon: 'inventory',
+    section: 'CATALOGUE',
+    roles: ['admin', 'superviseur', 'gestionnaire_stock'],
+  },
+  {
+    path: '/fournisseurs',
+    label: 'Fournisseurs',
+    icon: 'truck',
+    section: 'CATALOGUE',
+    roles: ['admin', 'superviseur'],
+  },
+
+  // ── Opérations ────────────────────────────────────────────────────────────
   {
     path: '/ventes',
     label: 'Ventes',
@@ -95,7 +117,7 @@ const NAV_ITEMS: NavItem[] = [
     roles: ['admin', 'superviseur', 'chauffeur'],
   },
 
-  // ── Gestion interne entreprise ────────────────────────────────────────────
+  // ── Gestion interne ────────────────────────────────────────────────────────
   {
     path: '/finance',
     label: 'Finance',
@@ -110,8 +132,24 @@ const NAV_ITEMS: NavItem[] = [
     section: 'GESTION',
     roles: ['admin', 'superviseur'],
   },
+  {
+    path: '/documents',
+    label: 'Documents',
+    icon: 'documents',
+    section: 'GESTION',
+    roles: ['admin', 'superviseur'],
+  },
 
-  // ── Administration entreprise (admin uniquement) ──────────────────────────
+  // ── Rapports ──────────────────────────────────────────────────────────────
+  {
+    path: '/rapports',
+    label: 'Rapports',
+    icon: 'reports',
+    section: 'ANALYSE',
+    roles: ['admin', 'superviseur'],
+  },
+
+  // ── Administration entreprise ──────────────────────────────────────────────
   {
     path: '/admin',
     label: 'Utilisateurs',
@@ -119,8 +157,15 @@ const NAV_ITEMS: NavItem[] = [
     section: 'ADMINISTRATION',
     roles: ['admin'],
   },
+  // Après le bloc CATALOGUE, ajouter :
+{
+  path: '/zones',
+  label: 'Zones & Dépôts',
+  icon: 'mapPin',
+  section: 'ADMINISTRATION',
+  roles: ['admin', 'superadmin'],
+},
 ];
-
 // ============================================================================
 // Icônes SVG
 // ============================================================================
@@ -141,6 +186,12 @@ const ICONS: Record<string, string> = {
   chevronRight: `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>`,
   chevronsLeft: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m11 17-5-5 5-5"/><path d="m18 17-5-5 5-5"/></svg>`,
   chevronsRight: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 17 5-5-5-5"/><path d="m13 17 5-5-5-5"/></svg>`,
+  mapPin: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>`,
+package: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>`,
+fileText: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>`,
+barChart: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="20" y2="10"/><line x1="18" x2="18" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="16"/></svg>`,
+documents: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>`,
+  reports: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`,
 };
 
 @Component({
