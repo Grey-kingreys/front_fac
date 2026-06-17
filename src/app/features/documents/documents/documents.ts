@@ -1,3 +1,8 @@
+// ============================================================
+// DOCUMENTS — Gestion documentaire
+// Chemin : src/app/features/documents/documents/documents.ts
+// Ce fichier REMPLACE l'existant — il ajoute upload + delete
+// ============================================================
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -31,7 +36,6 @@ export class Documents implements OnInit {
   total = signal(0);
   page = signal(1);
   readonly PAGE_SIZE = 20;
-  protected readonly Math = Math;
 
   totalPages = computed(() => Math.max(1, Math.ceil(this.total() / this.PAGE_SIZE)));
   hasPrev = computed(() => this.page() > 1);
@@ -40,6 +44,13 @@ export class Documents implements OnInit {
   search = '';
   categoryFilter = '';
   private searchTimer: ReturnType<typeof setTimeout> | null = null;
+
+  // Upload panel
+  showUpload = signal(false);
+  uploadLoading = signal(false);
+  uploadForm: { file: File | null; name: string; category: string } = {
+    file: null, name: '', category: 'contrat',
+  };
 
   ngOnInit(): void { this.load(); }
 
@@ -56,7 +67,7 @@ export class Documents implements OnInit {
     });
   }
 
-  onSearchChange(): void {
+  onSearch(): void {
     if (this.searchTimer) clearTimeout(this.searchTimer);
     this.searchTimer = setTimeout(() => { this.page.set(1); this.load(); }, 400);
   }
@@ -64,25 +75,44 @@ export class Documents implements OnInit {
   prevPage(): void { if (this.hasPrev()) { this.page.update(p => p - 1); this.load(); } }
   nextPage(): void { if (this.hasNext()) { this.page.update(p => p + 1); this.load(); } }
 
-  formatSize(bytes: number): string {
-    if (bytes < 1024) return `${bytes} o`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} Ko`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
+  openUploadPanel(): void {
+    this.uploadForm = { file: null, name: '', category: 'contrat' };
+    this.showUpload.set(true);
   }
 
-  getCategoryClass(cat: string): string {
-    const classes: Record<string, string> = {
-      bon_livraison: 'bg-blue-50 text-blue-700 border-blue-200',
-      facture: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      contrat: 'bg-purple-50 text-purple-700 border-purple-200',
-      rapport: 'bg-orange-50 text-orange-700 border-orange-200',
-      autre: 'bg-gray-100 text-gray-600 border-gray-200',
-    };
-    return classes[cat] || classes['autre'];
+  onFileChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      this.uploadForm.file = input.files[0];
+      if (!this.uploadForm.name) {
+        this.uploadForm.name = input.files[0].name.replace(/\.[^/.]+$/, '');
+      }
+    }
   }
 
-  getCategoryLabel(cat: string): string {
-    const labels: Record<string, string> = { bon_livraison: 'Bon de livraison', facture: 'Facture', contrat: 'Contrat', rapport: 'Rapport', autre: 'Autre' };
-    return labels[cat] || cat;
+  uploadDocument(): void {
+    if (!this.uploadForm.file || !this.uploadForm.name) return;
+    this.uploadLoading.set(true);
+    const formData = new FormData();
+    formData.append('file', this.uploadForm.file);
+    formData.append('name', this.uploadForm.name);
+    formData.append('category', this.uploadForm.category);
+    this.http.post<Document>(`${this.BASE}/`, formData).subscribe({
+      next: () => {
+        this.toast.success('Document uploadé avec succès.');
+        this.showUpload.set(false);
+        this.load();
+        this.uploadLoading.set(false);
+      },
+      error: () => { this.toast.error('Erreur lors de l\'upload.'); this.uploadLoading.set(false); },
+    });
+  }
+
+  deleteDocument(id: number): void {
+    if (!confirm('Supprimer ce document définitivement ?')) return;
+    this.http.delete(`${this.BASE}/${id}/`).subscribe({
+      next: () => { this.toast.success('Document supprimé.'); this.load(); },
+      error: () => this.toast.error('Erreur lors de la suppression.'),
+    });
   }
 }

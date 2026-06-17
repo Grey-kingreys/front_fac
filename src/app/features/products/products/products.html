@@ -1,80 +1,155 @@
-<!-- En-tête -->
-<div class="mb-6 flex items-start justify-between gap-4">
+<!-- ============================================================
+     PRODUITS — Liste complète + Panneau création/édition
+     Connecté à : ProductsService → /api/products/
+     ============================================================ -->
+
+<!-- En-tête de page -->
+<div class="flex items-center justify-between mb-6">
   <div>
     <h1 class="text-2xl font-bold text-gray-900">Produits</h1>
-    <p class="text-sm text-gray-500 mt-1">Catalogue de vos produits et services</p>
+    <p class="text-sm text-gray-500 mt-0.5">{{ total() }} produit{{ total() !== 1 ? 's' : '' }} au total</p>
   </div>
   <button type="button" (click)="openCreate()"
-    class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm">
-    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+    class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+    </svg>
     Nouveau produit
   </button>
 </div>
 
 <!-- Barre de recherche -->
 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-4">
-  <div class="flex flex-wrap gap-3 items-center">
-    <div class="relative flex-1 min-w-[220px]">
-      <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.35-4.35"/></svg>
-      <input type="text" placeholder="Rechercher un produit..." [(ngModel)]="search" (ngModelChange)="onSearchChange()"
-        class="w-full pl-9 pr-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"/>
-    </div>
-    <span class="ml-auto text-sm text-gray-400">
-      @if (loading()) { Chargement... } @else { {{ total() }} produit{{ total() > 1 ? 's' : '' }} }
-    </span>
+  <div class="relative max-w-sm">
+    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+      <circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35"/>
+    </svg>
+    <input type="text" [(ngModel)]="search" (ngModelChange)="onSearchChange()"
+      placeholder="Rechercher par nom ou référence…"
+      class="w-full pl-9 pr-4 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"/>
   </div>
 </div>
 
-<!-- Tableau -->
+<!-- Tableau principal -->
 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+
+  <!-- État chargement -->
   @if (loading()) {
     <div class="flex items-center justify-center py-20 text-gray-400">
-      <svg class="w-6 h-6 animate-spin mr-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
-      Chargement...
+      <svg class="w-6 h-6 animate-spin mr-3" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+      </svg>
+      Chargement des produits…
     </div>
-  } @else if (products().length === 0) {
-    <div class="py-20 text-center text-gray-400">
-      <svg class="w-12 h-12 mx-auto mb-3 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-      <p class="font-medium text-gray-500">Aucun produit trouvé</p>
-      <p class="text-sm mt-1">{{ search ? 'Modifiez votre recherche.' : 'Créez votre premier produit.' }}</p>
+  }
+
+  <!-- État vide -->
+  @if (!loading() && products().length === 0) {
+    <div class="flex flex-col items-center justify-center py-20 text-center px-6">
+      <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mb-4">
+        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+        </svg>
+      </div>
+      <p class="text-gray-900 font-semibold mb-1">Aucun produit trouvé</p>
+      <p class="text-sm text-gray-500">{{ search ? 'Modifiez votre recherche ou' : '' }} Ajoutez votre premier produit.</p>
     </div>
-  } @else {
+  }
+
+  <!-- Tableau avec données -->
+  @if (!loading() && products().length > 0) {
     <table class="w-full text-sm">
       <thead>
         <tr class="border-b border-gray-100 bg-slate-50/60">
           <th class="text-left px-5 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Produit</th>
-          <th class="text-left px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider hidden md:table-cell">Référence</th>
+          <th class="text-left px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider hidden md:table-cell">Catégorie</th>
           <th class="text-left px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider hidden lg:table-cell">Unité</th>
-          <th class="text-right px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Prix achat</th>
+          <th class="text-right px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider hidden lg:table-cell">Prix achat</th>
           <th class="text-right px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Prix vente</th>
-          <th class="text-left px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider hidden lg:table-cell">TVA</th>
-          <th class="px-4 py-3 w-20"></th>
+          <th class="text-center px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider hidden xl:table-cell">TVA</th>
+          <th class="text-center px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider hidden md:table-cell">Statut</th>
+          <th class="px-4 py-3 w-24"></th>
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-50">
         @for (product of products(); track product.id) {
           <tr class="hover:bg-slate-50/50 transition-colors">
-            <td class="px-5 py-3">
-              <div>
-                <p class="font-medium text-gray-900">{{ product.name }}</p>
-                @if (product.category) { <p class="text-xs text-gray-400">{{ product.category }}</p> }
+
+            <!-- Nom + référence -->
+            <td class="px-5 py-3.5">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white text-xs font-bold shrink-0"
+                  [class]="product.is_active ? 'bg-gradient-to-br from-blue-500 to-blue-600' : 'bg-gradient-to-br from-gray-400 to-gray-500'">
+                  {{ product.name[0].toUpperCase() }}
+                </div>
+                <div>
+                  <p class="font-semibold text-gray-900">{{ product.name }}</p>
+                  <p class="text-xs text-gray-400 font-mono">{{ product.reference }}</p>
+                </div>
               </div>
             </td>
-            <td class="px-4 py-3 text-gray-600 font-mono text-xs hidden md:table-cell">{{ product.reference }}</td>
-            <td class="px-4 py-3 text-gray-600 hidden lg:table-cell">{{ product.unit }}</td>
-            <td class="px-4 py-3 text-right text-gray-600 tabular-nums">{{ formatPrice(product.purchase_price) }}</td>
-            <td class="px-4 py-3 text-right font-semibold text-gray-900 tabular-nums">{{ formatPrice(product.selling_price) }}</td>
-            <td class="px-4 py-3 text-gray-500 hidden lg:table-cell">{{ product.tva_rate }}%</td>
-            <td class="px-4 py-3">
+
+            <!-- Catégorie -->
+            <td class="px-4 py-3.5 hidden md:table-cell">
+              @if (product.category) {
+                <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 text-xs font-medium">
+                  {{ product.category }}
+                </span>
+              } @else {
+                <span class="text-gray-300">—</span>
+              }
+            </td>
+
+            <!-- Unité -->
+            <td class="px-4 py-3.5 text-gray-600 hidden lg:table-cell">{{ product.unit }}</td>
+
+            <!-- Prix achat -->
+            <td class="px-4 py-3.5 text-right text-gray-500 hidden lg:table-cell font-mono text-xs">
+              {{ formatPrice(product.purchase_price) }}
+            </td>
+
+            <!-- Prix vente -->
+            <td class="px-4 py-3.5 text-right font-semibold text-gray-900 font-mono">
+              {{ formatPrice(product.selling_price) }}
+            </td>
+
+            <!-- TVA -->
+            <td class="px-4 py-3.5 text-center hidden xl:table-cell">
+              <span class="text-xs text-gray-500">{{ product.tva_rate }}%</span>
+            </td>
+
+            <!-- Statut -->
+            <td class="px-4 py-3.5 text-center hidden md:table-cell">
+              @if (product.is_active) {
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-medium">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Actif
+                </span>
+              } @else {
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gray-100 text-gray-500 border border-gray-200 text-xs font-medium">
+                  <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>Inactif
+                </span>
+              }
+            </td>
+
+            <!-- Actions -->
+            <td class="px-4 py-3.5">
               <div class="flex items-center justify-end gap-1">
-                <button type="button" (click)="openEdit(product)" class="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors" title="Modifier">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                <button type="button" (click)="openEdit(product)"
+                  class="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors" title="Modifier">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                  </svg>
                 </button>
-                <button type="button" (click)="openDelete(product)" class="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors" title="Supprimer">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                <button type="button" (click)="openDelete(product)"
+                  class="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors" title="Supprimer">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                  </svg>
                 </button>
               </div>
             </td>
+
           </tr>
         }
       </tbody>
@@ -83,102 +158,215 @@
     <!-- Pagination -->
     @if (totalPages() > 1) {
       <div class="flex items-center justify-between px-5 py-3 border-t border-gray-100 bg-slate-50/40">
-        <p class="text-sm text-gray-500">{{ pageStart() }}–{{ pageEnd() }} sur {{ total() }}</p>
-        <div class="flex items-center gap-2">
-          <button type="button" (click)="prevPage()" [disabled]="!hasPrev()" class="px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">← Précédent</button>
-          <span class="text-sm text-gray-500">{{ page() }} / {{ totalPages() }}</span>
-          <button type="button" (click)="nextPage()" [disabled]="!hasNext()" class="px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">Suivant →</button>
+        <p class="text-xs text-gray-500">
+          {{ pageStart() }}–{{ pageEnd() }} sur <span class="font-semibold text-gray-700">{{ total() }}</span> produits
+        </p>
+        <div class="flex items-center gap-1">
+          <button type="button" (click)="prevPage()" [disabled]="!hasPrev()"
+            class="px-3 py-1.5 rounded-lg text-sm font-medium border border-gray-200 text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+            ← Précédent
+          </button>
+          <span class="px-3 py-1.5 text-sm font-semibold text-gray-700">{{ page() }} / {{ totalPages() }}</span>
+          <button type="button" (click)="nextPage()" [disabled]="!hasNext()"
+            class="px-3 py-1.5 rounded-lg text-sm font-medium border border-gray-200 text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+            Suivant →
+          </button>
         </div>
       </div>
     }
   }
 </div>
 
-<!-- SLIDE-OVER PANEL Créer/Modifier -->
+
+<!-- ============================================================
+     PANNEAU LATÉRAL — Création / Édition d'un produit
+     S'ouvre depuis le bouton "Nouveau produit" ou "Modifier"
+     ============================================================ -->
 @if (showPanel()) {
-  <div class="fixed inset-0 bg-black/30 z-40 backdrop-blur-sm" (click)="closePanel()"></div>
-  <div class="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-white shadow-2xl flex flex-col">
-    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-      <h2 class="text-lg font-semibold text-gray-900">{{ isEditing() ? 'Modifier le produit' : 'Nouveau produit' }}</h2>
-      <button type="button" (click)="closePanel()" class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+  <!-- Overlay sombre cliquable pour fermer -->
+  <div class="fixed inset-0 bg-black/40 z-40 backdrop-blur-sm" (click)="closePanel()"></div>
+
+  <!-- Panneau -->
+  <div class="fixed top-0 right-0 h-full w-full max-w-md bg-white z-50 flex flex-col shadow-2xl">
+
+    <!-- En-tête du panneau -->
+    <div class="flex items-center justify-between px-6 py-5 border-b border-gray-100 shrink-0">
+      <div>
+        <h2 class="text-lg font-bold text-gray-900">{{ isEditing() ? 'Modifier le produit' : 'Nouveau produit' }}</h2>
+        <p class="text-xs text-gray-500 mt-0.5">{{ isEditing() ? 'Modifiez les informations ci-dessous' : 'Remplissez les informations du produit' }}</p>
+      </div>
+      <button type="button" (click)="closePanel()" class="p-2 rounded-xl text-gray-400 hover:bg-gray-100 transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
       </button>
     </div>
-    <div class="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+
+    <!-- Corps du formulaire (scrollable) -->
+    <div class="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+
+      <!-- Nom -->
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+          Nom du produit <span class="text-red-500">*</span>
+        </label>
+        <input type="text" [(ngModel)]="formData.name" placeholder="Ex: Riz parfumé 25kg"
+          class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-colors"/>
+      </div>
+
+      <!-- Référence + Unité (2 colonnes) -->
       <div class="grid grid-cols-2 gap-4">
-        <div class="col-span-2">
-          <label class="block text-sm font-medium text-gray-700 mb-1.5">Nom du produit <span class="text-red-500">*</span></label>
-          <input type="text" [(ngModel)]="formData.name" placeholder="Ex: Riz parfumé 25kg"
-            class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"/>
-        </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1.5">Référence <span class="text-red-500">*</span></label>
+          <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+            Référence <span class="text-red-500">*</span>
+          </label>
           <input type="text" [(ngModel)]="formData.reference" placeholder="REF-001"
-            class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"/>
+            class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-colors"/>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1.5">Unité</label>
-          <select [(ngModel)]="formData.unit" class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400">
-            @for (unit of units; track unit) { <option [value]="unit">{{ unit }}</option> }
+          <label class="block text-sm font-semibold text-gray-700 mb-1.5">Unité de mesure</label>
+          <select [(ngModel)]="formData.unit"
+            class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-colors">
+            @for (unit of units; track unit) {
+              <option [value]="unit">{{ unit }}</option>
+            }
           </select>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1.5">Catégorie</label>
-          <input type="text" [(ngModel)]="formData.category" placeholder="Ex: Alimentaire"
-            class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"/>
+      </div>
+
+      <!-- Catégorie -->
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1.5">Catégorie</label>
+        <input type="text" [(ngModel)]="formData.category" placeholder="Ex: Alimentaire, Boisson, Électronique…"
+          class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-colors"/>
+      </div>
+
+      <!-- Séparateur visuel -->
+      <div class="border-t border-dashed border-gray-200 pt-1">
+        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Tarification</p>
+
+        <!-- Prix achat + Prix vente (2 colonnes) -->
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Prix d'achat (GNF)</label>
+            <input type="number" [(ngModel)]="formData.purchase_price" min="0" placeholder="0"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-colors"/>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+              Prix de vente (GNF) <span class="text-red-500">*</span>
+            </label>
+            <input type="number" [(ngModel)]="formData.selling_price" min="0" placeholder="0"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-colors"/>
+          </div>
         </div>
+
+        <!-- TVA -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1.5">TVA (%)</label>
-          <input type="number" [(ngModel)]="formData.tva_rate" min="0" max="100" placeholder="18"
-            class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"/>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1.5">Prix d'achat (GNF)</label>
-          <input type="number" [(ngModel)]="formData.purchase_price" min="0" placeholder="0"
-            class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"/>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1.5">Prix de vente (GNF) <span class="text-red-500">*</span></label>
-          <input type="number" [(ngModel)]="formData.selling_price" min="0" placeholder="0"
-            class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"/>
-        </div>
-        <div class="col-span-2">
-          <label class="block text-sm font-medium text-gray-700 mb-1.5">Description</label>
-          <textarea [(ngModel)]="formData.description" rows="3" placeholder="Description optionnelle..."
-            class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 resize-none"></textarea>
+          <label class="block text-sm font-semibold text-gray-700 mb-1.5">Taux de TVA (%)</label>
+          <div class="flex items-center gap-3">
+            <input type="number" [(ngModel)]="formData.tva_rate" min="0" max="100" placeholder="18"
+              class="w-28 px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-colors"/>
+            <span class="text-sm text-gray-500">
+              @if (formData.selling_price > 0) {
+                → Prix TTC : <span class="font-semibold text-gray-800">{{ formatPrice(formData.selling_price * (1 + (formData.tva_rate || 0) / 100)) }}</span>
+              }
+            </span>
+          </div>
         </div>
       </div>
+
+      <!-- Marge calculée (affichage dynamique) -->
+      @if (formData.purchase_price > 0 && formData.selling_price > 0) {
+        <div class="rounded-xl p-4 border"
+          [class]="formData.selling_price > formData.purchase_price
+            ? 'bg-emerald-50 border-emerald-200'
+            : 'bg-red-50 border-red-200'">
+          <p class="text-xs font-semibold mb-1"
+            [class]="formData.selling_price > formData.purchase_price ? 'text-emerald-700' : 'text-red-700'">
+            Marge bénéficiaire
+          </p>
+          <p class="text-xl font-bold"
+            [class]="formData.selling_price > formData.purchase_price ? 'text-emerald-700' : 'text-red-700'">
+            {{ formatPrice(formData.selling_price - formData.purchase_price) }}
+            <span class="text-sm font-medium ml-1">
+              ({{ ((formData.selling_price - formData.purchase_price) / formData.selling_price * 100).toFixed(1) }}%)
+            </span>
+          </p>
+        </div>
+      }
+
+      <!-- Description -->
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1.5">Description (optionnel)</label>
+        <textarea [(ngModel)]="formData.description" rows="3" placeholder="Description du produit, notes particulières…"
+          class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-colors"></textarea>
+      </div>
+
     </div>
-    <div class="px-6 py-4 border-t border-gray-100 flex gap-3">
-      <button type="button" (click)="closePanel()" class="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50">Annuler</button>
+
+    <!-- Pied du panneau — boutons d'action -->
+    <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/50 shrink-0 flex items-center gap-3">
+      <button type="button" (click)="closePanel()"
+        class="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors">
+        Annuler
+      </button>
       <button type="button" (click)="save()" [disabled]="!canSave() || panelLoading()"
-        class="flex-1 px-4 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2">
-        @if (panelLoading()) { <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg> }
-        {{ isEditing() ? 'Enregistrer' : 'Créer' }}
+        class="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+        @if (panelLoading()) {
+          <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+          </svg>
+          Enregistrement…
+        } @else {
+          {{ isEditing() ? 'Enregistrer' : 'Créer le produit' }}
+        }
       </button>
     </div>
   </div>
 }
 
-<!-- MODALE Suppression -->
-@if (deleteTarget() !== null) {
-  <div class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
-      <div class="flex items-start gap-4">
-        <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center shrink-0">
-          <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-        </div>
-        <div>
-          <h3 class="font-semibold text-gray-900">Supprimer ce produit ?</h3>
-          <p class="text-sm text-gray-500 mt-1"><strong>{{ deleteTarget()!.name }}</strong> sera définitivement supprimé.</p>
-        </div>
+
+<!-- ============================================================
+     MODALE DE SUPPRESSION — Confirmation avant suppression
+     ============================================================ -->
+@if (deleteTarget()) {
+  <div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6">
+
+      <!-- Icône danger -->
+      <div class="w-12 h-12 bg-red-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+        <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
       </div>
-      <div class="flex gap-3 mt-6">
-        <button type="button" (click)="closeDelete()" class="flex-1 px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50">Annuler</button>
+
+      <h3 class="text-lg font-bold text-gray-900 text-center mb-2">Supprimer ce produit ?</h3>
+      <p class="text-sm text-gray-500 text-center mb-1">
+        Vous êtes sur le point de supprimer
+      </p>
+      <p class="text-sm font-semibold text-gray-800 text-center mb-5">
+        "{{ deleteTarget()!.name }}" ({{ deleteTarget()!.reference }})
+      </p>
+      <p class="text-xs text-red-600 bg-red-50 rounded-xl p-3 text-center mb-5">
+        ⚠️ Cette action est irréversible. Les mouvements de stock liés peuvent être affectés.
+      </p>
+
+      <div class="flex gap-3">
+        <button type="button" (click)="closeDelete()"
+          class="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+          Annuler
+        </button>
         <button type="button" (click)="executeDelete()" [disabled]="deleteLoading()"
-          class="flex-1 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-medium disabled:opacity-50 flex items-center justify-center gap-2">
-          @if (deleteLoading()) { <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg> }
-          Supprimer
+          class="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+          @if (deleteLoading()) {
+            <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+            </svg>
+          }
+          Supprimer définitivement
         </button>
       </div>
     </div>

@@ -1,88 +1,135 @@
-<div class="mb-6 flex items-start justify-between gap-4">
+<!-- ============================================================
+     FINANCE — Sessions de caisse
+     Chemin : src/app/features/finance/finance/finance.html
+     Compatible avec : FinanceService + CashSession existants
+     ============================================================ -->
+
+<!-- En-tête -->
+<div class="flex items-center justify-between mb-6">
   <div>
     <h1 class="text-2xl font-bold text-gray-900">Finance & Caisses</h1>
-    <p class="text-sm text-gray-500 mt-1">Gestion des sessions de caisse</p>
+    <p class="text-sm text-gray-500 mt-0.5">Gestion des sessions de caisse</p>
   </div>
   <button type="button" (click)="showOpenPanel.set(true)"
-    class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-600 text-white text-sm font-medium hover:bg-purple-700 transition-colors shadow-sm">
+    class="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm">
     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-    Ouvrir une caisse
+    Ouvrir une session
   </button>
 </div>
 
-<!-- Stats -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-  <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-    <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center mb-4">
-      <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-    </div>
-    <p class="text-2xl font-bold text-gray-900">{{ formatPrice(totalBalance()) }}</p>
-    <p class="text-sm text-gray-500 mt-1">Solde total des caisses ouvertes</p>
-  </div>
-  <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-    <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center mb-4">
-      <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+<!-- KPIs -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+    <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center mb-3">
+      <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
     </div>
     <p class="text-2xl font-bold text-gray-900">{{ totalOpen() }}</p>
-    <p class="text-sm text-gray-500 mt-1">Caisses ouvertes</p>
+    <p class="text-sm text-gray-500 mt-0.5">Sessions ouvertes</p>
   </div>
-  <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-    <div class="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center mb-4">
-      <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+  <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+    <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center mb-3">
+      <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+    </div>
+    <p class="text-2xl font-bold text-gray-900">{{ formatPrice(totalBalance()) }}</p>
+    <p class="text-sm text-gray-500 mt-0.5">Solde total ouvert</p>
+  </div>
+  <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+    <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center mb-3">
+      <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M16 3H8M12 3v4"/></svg>
+    </div>
+    <p class="text-2xl font-bold text-gray-900">{{ total() }}</p>
+    <p class="text-sm text-gray-500 mt-0.5">Sessions totales</p>
+  </div>
+  <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+    <div class="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center mb-3">
+      <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
     </div>
     <p class="text-2xl font-bold text-gray-900">{{ total() - totalOpen() }}</p>
-    <p class="text-sm text-gray-500 mt-1">Caisses clôturées</p>
+    <p class="text-sm text-gray-500 mt-0.5">Sessions clôturées</p>
   </div>
 </div>
 
-<!-- Tableau des sessions -->
+<!-- Tableau sessions -->
 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+  <div class="px-5 py-4 border-b border-gray-100">
+    <h2 class="text-base font-bold text-gray-900">Sessions de caisse</h2>
+  </div>
+
   @if (loading()) {
-    <div class="flex items-center justify-center py-20 text-gray-400">
-      <svg class="w-6 h-6 animate-spin mr-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
-      Chargement...
+    <div class="flex items-center justify-center py-20 text-gray-400 gap-3">
+      <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+      Chargement…
     </div>
-  } @else if (sessions().length === 0) {
-    <div class="py-20 text-center text-gray-400">
-      <svg class="w-12 h-12 mx-auto mb-3 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1"/></svg>
-      <p class="font-medium text-gray-500">Aucune session de caisse</p>
+  }
+
+  @if (!loading() && sessions().length === 0) {
+    <div class="flex flex-col items-center justify-center py-20 text-center px-6">
+      <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mb-4">
+        <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+      </div>
+      <p class="font-semibold text-gray-700 mb-1">Aucune session de caisse</p>
+      <p class="text-sm text-gray-400">Ouvrez votre première session pour commencer.</p>
     </div>
-  } @else {
+  }
+
+  @if (!loading() && sessions().length > 0) {
     <table class="w-full text-sm">
       <thead>
         <tr class="border-b border-gray-100 bg-slate-50/60">
-          <th class="text-left px-5 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Caissier</th>
+          <th class="text-left px-5 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Session</th>
           <th class="text-left px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider hidden md:table-cell">Dépôt</th>
-          <th class="text-right px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Solde attendu</th>
-          <th class="text-left px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider hidden lg:table-cell">Ouverture</th>
-          <th class="text-left px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Statut</th>
-          <th class="px-4 py-3 w-24"></th>
+          <th class="text-right px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Ouverture</th>
+          <th class="text-right px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider hidden lg:table-cell">Solde attendu</th>
+          <th class="text-center px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Statut</th>
+          <th class="text-left px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider hidden xl:table-cell">Ouvert le</th>
+          <th class="px-4 py-3 w-28"></th>
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-50">
         @for (session of sessions(); track session.id) {
           <tr class="hover:bg-slate-50/50 transition-colors">
-            <td class="px-5 py-3 font-medium text-gray-900">{{ session.cashier_name }}</td>
-            <td class="px-4 py-3 text-gray-600 hidden md:table-cell">{{ session.depot_name }}</td>
-            <td class="px-4 py-3 text-right font-bold tabular-nums">{{ formatPrice(session.expected_amount) }}</td>
-            <td class="px-4 py-3 text-gray-500 text-xs hidden lg:table-cell">{{ formatDate(session.opened_at) }}</td>
-            <td class="px-4 py-3">
+            <td class="px-5 py-3.5">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                  [class]="session.status === 'open' ? 'bg-emerald-100' : 'bg-gray-100'">
+                  <svg class="w-4 h-4" [class]="session.status === 'open' ? 'text-emerald-600' : 'text-gray-400'"
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                  </svg>
+                </div>
+                <div>
+                  <p class="font-semibold text-gray-900">Session #{{ session.id }}</p>
+                  <p class="text-xs text-gray-400">{{ session.cashier_name }}</p>
+                </div>
+              </div>
+            </td>
+            <td class="px-4 py-3.5 hidden md:table-cell">
+              <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 text-xs font-medium">
+                {{ session.depot_name }}
+              </span>
+            </td>
+            <td class="px-4 py-3.5 text-right font-mono text-sm text-gray-600">{{ formatPrice(session.opening_amount) }}</td>
+            <td class="px-4 py-3.5 text-right font-mono font-bold text-gray-900 hidden lg:table-cell">{{ formatPrice(session.expected_amount) }}</td>
+            <td class="px-4 py-3.5 text-center">
               @if (session.status === 'open') {
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Ouverte
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>Ouverte
                 </span>
               } @else {
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">
-                  <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Clôturée
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500 border border-gray-200">
+                  <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>Clôturée
                 </span>
               }
             </td>
-            <td class="px-4 py-3">
+            <td class="px-4 py-3.5 text-xs text-gray-400 hidden xl:table-cell">{{ formatDate(session.opened_at) }}</td>
+            <td class="px-4 py-3.5">
               @if (session.status === 'open') {
                 <button type="button" (click)="openCloseModal(session)"
-                  class="px-3 py-1.5 rounded-lg bg-red-50 text-red-700 hover:bg-red-100 text-xs font-medium transition-colors">
+                  class="px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 text-xs font-semibold transition-colors">
                   Clôturer
                 </button>
+              } @else {
+                <span class="text-xs text-gray-400">{{ formatDate(session.closed_at) }}</span>
               }
             </td>
           </tr>
@@ -92,62 +139,107 @@
   }
 </div>
 
-<!-- Panel Ouvrir caisse -->
+<!-- PANNEAU — Ouvrir une session -->
 @if (showOpenPanel()) {
-  <div class="fixed inset-0 bg-black/30 z-40 backdrop-blur-sm" (click)="showOpenPanel.set(false)"></div>
-  <div class="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-white shadow-2xl flex flex-col">
-    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-      <h2 class="text-lg font-semibold text-gray-900">Ouvrir une session de caisse</h2>
-      <button type="button" (click)="showOpenPanel.set(false)" class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100">
+  <div class="fixed inset-0 bg-black/40 z-40 backdrop-blur-sm" (click)="showOpenPanel.set(false)"></div>
+  <div class="fixed top-0 right-0 h-full w-full max-w-md bg-white z-50 flex flex-col shadow-2xl">
+    <div class="flex items-center justify-between px-6 py-5 border-b border-gray-100 shrink-0">
+      <div>
+        <h2 class="text-lg font-bold text-gray-900">Ouvrir une session</h2>
+        <p class="text-xs text-gray-500 mt-0.5">Renseignez le fond de caisse initial</p>
+      </div>
+      <button type="button" (click)="showOpenPanel.set(false)" class="p-2 rounded-xl text-gray-400 hover:bg-gray-100 transition-colors">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
     </div>
-    <div class="flex-1 px-6 py-5 space-y-4">
+    <div class="flex-1 overflow-y-auto px-6 py-5 space-y-5">
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1.5">Montant d'ouverture (GNF) <span class="text-red-500">*</span></label>
+        <label class="block text-sm font-semibold text-gray-700 mb-1.5">Montant d'ouverture (GNF)</label>
         <input type="number" [(ngModel)]="openForm.opening_amount" min="0" placeholder="0"
-          class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-400"/>
+          class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400"/>
+        <p class="text-xs text-gray-400 mt-1.5">Montant de la monnaie présente en caisse au démarrage.</p>
+      </div>
+      <div class="rounded-xl p-4 bg-amber-50 border border-amber-200">
+        <p class="text-xs font-semibold text-amber-700 mb-1">⚠️ Important</p>
+        <p class="text-xs text-amber-600">Une session ouverte ne peut pas être supprimée. Elle sera clôturée manuellement en fin de journée.</p>
       </div>
     </div>
-    <div class="px-6 py-4 border-t border-gray-100 flex gap-3">
-      <button type="button" (click)="showOpenPanel.set(false)" class="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50">Annuler</button>
+    <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/50 shrink-0 flex gap-3">
+      <button type="button" (click)="showOpenPanel.set(false)" class="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors">Annuler</button>
       <button type="button" (click)="openSession()" [disabled]="actionLoading()"
-        class="flex-1 px-4 py-2.5 rounded-xl bg-purple-600 text-white text-sm font-medium hover:bg-purple-700 disabled:opacity-50 flex items-center justify-center gap-2">
-        @if (actionLoading()) { <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg> }
-        Ouvrir la caisse
+        class="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+        @if (actionLoading()) {
+          <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+        }
+        Ouvrir la session
       </button>
     </div>
   </div>
 }
 
-<!-- Modal clôturer -->
+<!-- PANNEAU — Clôturer une session -->
 @if (showClosePanel() && selectedSession() !== null) {
-  <div class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
-      <h3 class="font-semibold text-gray-900 mb-4">Clôturer la session</h3>
-      <div class="space-y-3">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1.5">Montant réel en caisse (GNF)</label>
-          <input type="number" [(ngModel)]="closeForm.closing_amount" min="0"
-            class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-400"/>
+  <div class="fixed inset-0 bg-black/40 z-40 backdrop-blur-sm" (click)="showClosePanel.set(false)"></div>
+  <div class="fixed top-0 right-0 h-full w-full max-w-md bg-white z-50 flex flex-col shadow-2xl">
+    <div class="flex items-center justify-between px-6 py-5 border-b border-gray-100 shrink-0">
+      <div>
+        <h2 class="text-lg font-bold text-gray-900">Clôturer la session</h2>
+        <p class="text-xs text-gray-500 mt-0.5">Session #{{ selectedSession()!.id }} · {{ selectedSession()!.cashier_name }}</p>
+      </div>
+      <button type="button" (click)="showClosePanel.set(false)" class="p-2 rounded-xl text-gray-400 hover:bg-gray-100 transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+      <!-- Résumé -->
+      <div class="rounded-xl p-4 bg-slate-50 border border-slate-200 space-y-2">
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-gray-500">Montant ouverture</span>
+          <span class="font-mono font-semibold text-gray-700">{{ formatPrice(selectedSession()!.opening_amount) }}</span>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1.5">Note</label>
-          <textarea [(ngModel)]="closeForm.note" rows="2" placeholder="Optionnel..."
-            class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none resize-none"></textarea>
-        </div>
-        <div class="p-3 bg-amber-50 rounded-xl text-sm text-amber-700">
-          Écart : <strong>{{ formatPrice(closeForm.closing_amount - (selectedSession()?.expected_amount ?? 0)) }}</strong>
+        <div class="flex items-center justify-between text-sm border-t border-slate-200 pt-2">
+          <span class="text-gray-500">Solde théorique</span>
+          <span class="font-mono font-bold text-gray-900">{{ formatPrice(selectedSession()!.expected_amount) }}</span>
         </div>
       </div>
-      <div class="flex gap-3 mt-5">
-        <button type="button" (click)="showClosePanel.set(false)" class="flex-1 px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50">Annuler</button>
-        <button type="button" (click)="closeSession()" [disabled]="actionLoading()"
-          class="flex-1 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-medium disabled:opacity-50 flex items-center justify-center gap-2">
-          @if (actionLoading()) { <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg> }
-          Clôturer
-        </button>
+      <!-- Montant réel -->
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1.5">Montant réel compté (GNF)</label>
+        <input type="number" [(ngModel)]="closeForm.closing_amount" min="0"
+          class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"/>
       </div>
+      <!-- Écart -->
+      <div class="rounded-xl p-4 border"
+        [class]="closeForm.closing_amount === selectedSession()!.expected_amount ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'">
+        <p class="text-xs font-semibold mb-1"
+          [class]="closeForm.closing_amount === selectedSession()!.expected_amount ? 'text-emerald-700' : 'text-red-700'">
+          Écart de caisse
+        </p>
+        <p class="text-xl font-bold"
+          [class]="closeForm.closing_amount === selectedSession()!.expected_amount ? 'text-emerald-700' : 'text-red-700'">
+          {{ formatPrice(closeForm.closing_amount - selectedSession()!.expected_amount) }}
+        </p>
+      </div>
+      <!-- Note -->
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1.5">Note de clôture (optionnel)</label>
+        <textarea [(ngModel)]="closeForm.note" rows="3" placeholder="Explication d'un éventuel écart…"
+          class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"></textarea>
+      </div>
+      <div class="rounded-xl p-4 bg-red-50 border border-red-200">
+        <p class="text-xs font-semibold text-red-700 mb-1">⚠️ Action irréversible</p>
+        <p class="text-xs text-red-600">Une fois clôturée, cette session ne peut plus être rouverte ni modifiée.</p>
+      </div>
+    </div>
+    <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/50 shrink-0 flex gap-3">
+      <button type="button" (click)="showClosePanel.set(false)" class="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors">Annuler</button>
+      <button type="button" (click)="closeSession()" [disabled]="actionLoading()"
+        class="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+        @if (actionLoading()) {
+          <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+        }
+        Clôturer la session
+      </button>
     </div>
   </div>
 }

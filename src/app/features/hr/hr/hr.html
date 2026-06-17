@@ -1,156 +1,139 @@
-<div class="mb-6 flex items-center justify-between gap-4">
+<!-- ============================================================
+     RESSOURCES HUMAINES — Employés & Congés
+     Chemin : src/app/features/hr/hr/hr.html
+     Connecté à : HttpClient → /api/hr/
+     ============================================================ -->
+
+<!-- En-tête -->
+<div class="flex items-center justify-between mb-6">
   <div>
     <h1 class="text-2xl font-bold text-gray-900">Ressources Humaines</h1>
-    <p class="text-sm text-gray-500 mt-1">Gestion des employés et des congés</p>
+    <p class="text-sm text-gray-500 mt-0.5">Gestion des employés et des congés</p>
   </div>
   @if (activeTab() === 'leaves') {
     <button type="button" (click)="showLeavePanel.set(true)"
-      class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-pink-600 text-white text-sm font-medium hover:bg-pink-700 transition-colors shadow-sm">
+      class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm">
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-      Demande de congé
+      Nouvelle demande
     </button>
   }
 </div>
 
-<!-- Stats -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-  <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-    <div class="w-10 h-10 bg-pink-100 rounded-xl flex items-center justify-center mb-4">
-      <svg class="w-5 h-5 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+<!-- KPIs -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+    <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center mb-3">
+      <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20H7m10 0v-2a3 3 0 00-5.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
     </div>
     <p class="text-2xl font-bold text-gray-900">{{ employees().length }}</p>
-    <p class="text-sm text-gray-500 mt-1">Employés actifs</p>
+    <p class="text-sm text-gray-500 mt-0.5">Employés actifs</p>
   </div>
-  <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-    <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center mb-4">
-      <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+  <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+    <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center mb-3">
+      <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
     </div>
     <p class="text-2xl font-bold text-gray-900">{{ pendingCount() }}</p>
-    <p class="text-sm text-gray-500 mt-1">Demandes en attente</p>
+    <p class="text-sm text-gray-500 mt-0.5">Congés en attente</p>
   </div>
-  <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-    <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center mb-4">
-      <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+  <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+    <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center mb-3">
+      <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
     </div>
     <p class="text-2xl font-bold text-gray-900">{{ approvedCount() }}</p>
-    <p class="text-sm text-gray-500 mt-1">Congés approuvés</p>
+    <p class="text-sm text-gray-500 mt-0.5">Congés approuvés</p>
+  </div>
+  <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+    <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center mb-3">
+      <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M16 2v4M8 2v4M3 10h18"/></svg>
+    </div>
+    <p class="text-2xl font-bold text-gray-900">{{ leaves().length }}</p>
+    <p class="text-sm text-gray-500 mt-0.5">Demandes totales</p>
   </div>
 </div>
 
 <!-- Tabs -->
 <div class="flex gap-1 p-1 bg-gray-100 rounded-xl w-fit mb-6">
-  <button type="button" (click)="switchTab('employees')"
-    class="px-4 py-2 rounded-lg text-sm font-medium transition-all"
+  <button type="button" (click)="activeTab.set('employees'); page.set(1); loadEmployees()"
+    class="px-5 py-2 rounded-lg text-sm font-semibold transition-all"
     [class]="activeTab() === 'employees' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'">
     Employés
   </button>
-  <button type="button" (click)="switchTab('leaves')"
-    class="px-4 py-2 rounded-lg text-sm font-medium transition-all"
+  <button type="button" (click)="activeTab.set('leaves'); page.set(1); loadLeaves()"
+    class="px-5 py-2 rounded-lg text-sm font-semibold transition-all relative"
     [class]="activeTab() === 'leaves' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'">
     Congés
+    @if (pendingCount() > 0) {
+      <span class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center">{{ pendingCount() }}</span>
+    }
   </button>
 </div>
 
-@if (loading()) {
-  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm flex items-center justify-center py-20 text-gray-400">
-    <svg class="w-6 h-6 animate-spin mr-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
-    Chargement...
-  </div>
-}
-
-<!-- Tab Employés -->
-@if (!loading() && activeTab() === 'employees') {
+<!-- ═══════════════ TAB EMPLOYÉS ═══════════════ -->
+@if (activeTab() === 'employees') {
   <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-    @if (employees().length === 0) {
-      <div class="py-20 text-center text-gray-400">
-        <p class="font-medium text-gray-500">Aucun employé trouvé</p>
+    @if (loading()) {
+      <div class="flex items-center justify-center py-20 text-gray-400 gap-3">
+        <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+        Chargement…
       </div>
-    } @else {
+    }
+    @if (!loading() && employees().length === 0) {
+      <div class="flex flex-col items-center justify-center py-20 text-center px-6">
+        <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mb-4">
+          <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20H7m10 0v-2a3 3 0 00-5.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        </div>
+        <p class="font-semibold text-gray-700 mb-1">Aucun employé trouvé</p>
+        <p class="text-sm text-gray-400">Les employés sont gérés via la section Utilisateurs.</p>
+      </div>
+    }
+    @if (!loading() && employees().length > 0) {
       <table class="w-full text-sm">
         <thead>
           <tr class="border-b border-gray-100 bg-slate-50/60">
             <th class="text-left px-5 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Employé</th>
             <th class="text-left px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider hidden md:table-cell">Rôle</th>
             <th class="text-left px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider hidden lg:table-cell">Dépôt</th>
-            <th class="text-left px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider hidden lg:table-cell">Date embauche</th>
-            <th class="text-right px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider hidden xl:table-cell">Solde congés</th>
-            <th class="text-left px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Statut</th>
+            <th class="text-center px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider hidden xl:table-cell">Solde congés</th>
+            <th class="text-left px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider hidden xl:table-cell">Embauche</th>
+            <th class="text-center px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Statut</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-50">
           @for (emp of employees(); track emp.id) {
             <tr class="hover:bg-slate-50/50 transition-colors">
-              <td class="px-5 py-3">
+              <td class="px-5 py-3.5">
                 <div class="flex items-center gap-3">
-                  <div class="w-9 h-9 rounded-full bg-gradient-to-br from-pink-500 to-rose-400 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                  <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white text-xs font-bold shrink-0"
+                    [class]="emp.is_active ? 'bg-gradient-to-br from-purple-500 to-purple-600' : 'bg-gradient-to-br from-gray-400 to-gray-500'">
                     {{ emp.full_name[0].toUpperCase() }}
                   </div>
                   <div>
-                    <p class="font-medium text-gray-900">{{ emp.full_name }}</p>
+                    <p class="font-semibold text-gray-900">{{ emp.full_name }}</p>
                     <p class="text-xs text-gray-400">{{ emp.email }}</p>
                   </div>
                 </div>
               </td>
-              <td class="px-4 py-3 text-gray-600 hidden md:table-cell">{{ emp.role }}</td>
-              <td class="px-4 py-3 text-gray-600 hidden lg:table-cell">{{ emp.depot_name || '—' }}</td>
-              <td class="px-4 py-3 text-gray-500 text-xs hidden lg:table-cell">{{ emp.hire_date | date:'dd/MM/yyyy' }}</td>
-              <td class="px-4 py-3 text-right font-semibold hidden xl:table-cell">{{ emp.solde_conges }} j</td>
-              <td class="px-4 py-3">
-                @if (emp.is_active) {
-                  <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Actif
-                  </span>
-                } @else {
-                  <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500 border border-gray-200">
-                    <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Inactif
-                  </span>
-                }
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    }
-  </div>
-}
-
-<!-- Tab Congés -->
-@if (!loading() && activeTab() === 'leaves') {
-  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-    @if (leaves().length === 0) {
-      <div class="py-20 text-center text-gray-400">
-        <p class="font-medium text-gray-500">Aucune demande de congé</p>
-      </div>
-    } @else {
-      <table class="w-full text-sm">
-        <thead>
-          <tr class="border-b border-gray-100 bg-slate-50/60">
-            <th class="text-left px-5 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Employé</th>
-            <th class="text-left px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Type</th>
-            <th class="text-left px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider hidden md:table-cell">Période</th>
-            <th class="text-left px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Statut</th>
-            <th class="px-4 py-3 w-28"></th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-50">
-          @for (leave of leaves(); track leave.id) {
-            <tr class="hover:bg-slate-50/50 transition-colors">
-              <td class="px-5 py-3 font-medium text-gray-900">{{ leave.employee_name }}</td>
-              <td class="px-4 py-3 text-gray-600">{{ getLeaveTypeLabel(leave.type) }}</td>
-              <td class="px-4 py-3 text-gray-500 text-xs hidden md:table-cell">
-                {{ leave.start_date | date:'dd/MM/yyyy' }} → {{ leave.end_date | date:'dd/MM/yyyy' }}
-              </td>
-              <td class="px-4 py-3">
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border" [ngClass]="getStatusClass(leave.status)">
-                  {{ getStatusLabel(leave.status) }}
+              <td class="px-4 py-3.5 hidden md:table-cell">
+                <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-purple-50 text-purple-700 text-xs font-medium">
+                  {{ emp.role }}
                 </span>
               </td>
-              <td class="px-4 py-3">
-                @if (leave.status === 'pending') {
-                  <div class="flex items-center gap-1">
-                    <button type="button" (click)="approveLeave(leave.id)" class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-xs font-medium">Approuver</button>
-                    <button type="button" (click)="rejectLeave(leave.id)" class="px-2.5 py-1 rounded-lg bg-red-50 text-red-700 hover:bg-red-100 text-xs font-medium">Refuser</button>
-                  </div>
+              <td class="px-4 py-3.5 text-gray-600 text-sm hidden lg:table-cell">{{ emp.depot_name || '—' }}</td>
+              <td class="px-4 py-3.5 text-center hidden xl:table-cell">
+                <span class="text-sm font-bold" [class]="emp.solde_conges > 0 ? 'text-emerald-600' : 'text-gray-400'">
+                  {{ emp.solde_conges }} j
+                </span>
+              </td>
+              <td class="px-4 py-3.5 text-xs text-gray-400 hidden xl:table-cell">{{ emp.hire_date | date:'dd/MM/yyyy' }}</td>
+              <td class="px-4 py-3.5 text-center">
+                @if (emp.is_active) {
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Actif
+                  </span>
+                } @else {
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500 border border-gray-200">
+                    <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>Inactif
+                  </span>
                 }
               </td>
             </tr>
@@ -161,48 +144,140 @@
   </div>
 }
 
-<!-- Panel demande congé -->
+<!-- ═══════════════ TAB CONGÉS ═══════════════ -->
+@if (activeTab() === 'leaves') {
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+    @if (loading()) {
+      <div class="flex items-center justify-center py-20 text-gray-400 gap-3">
+        <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+        Chargement…
+      </div>
+    }
+    @if (!loading() && leaves().length === 0) {
+      <div class="flex flex-col items-center justify-center py-20 text-center px-6">
+        <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mb-4">
+          <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M16 2v4M8 2v4M3 10h18"/></svg>
+        </div>
+        <p class="font-semibold text-gray-700 mb-1">Aucune demande de congé</p>
+        <p class="text-sm text-gray-400">Créez la première demande de congé.</p>
+      </div>
+    }
+    @if (!loading() && leaves().length > 0) {
+      <div class="divide-y divide-gray-50">
+        @for (leave of leaves(); track leave.id) {
+          <div class="flex items-center gap-4 px-5 py-4">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+              [class]="{
+                'pending': 'bg-amber-100',
+                'approved': 'bg-emerald-100',
+                'rejected': 'bg-red-100'
+              }[leave.status] || 'bg-gray-100'">
+              @if (leave.status === 'approved') {
+                <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              } @else if (leave.status === 'rejected') {
+                <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              } @else {
+                <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              }
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold text-gray-900">{{ leave.employee_name }}</p>
+              <p class="text-xs text-gray-400">
+                {{ { conge_annuel: 'Congé annuel', maladie: 'Maladie', sans_solde: 'Sans solde', autre: 'Autre' }[leave.type] || leave.type }}
+                · {{ leave.start_date | date:'dd/MM/yy' }} → {{ leave.end_date | date:'dd/MM/yy' }}
+              </p>
+            </div>
+            <div class="shrink-0">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border"
+                [class]="{
+                  'pending': 'bg-amber-50 text-amber-700 border-amber-200',
+                  'approved': 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                  'rejected': 'bg-red-50 text-red-700 border-red-200'
+                }[leave.status] || ''">
+                {{ { pending: 'En attente', approved: 'Approuvé', rejected: 'Refusé' }[leave.status] || leave.status }}
+              </span>
+            </div>
+            @if (leave.status === 'pending') {
+              <div class="flex gap-1 shrink-0">
+                <button type="button" (click)="approveLeave(leave.id)"
+                  class="p-1.5 rounded-lg text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors" title="Approuver">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                </button>
+                <button type="button" (click)="rejectLeave(leave.id)"
+                  class="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors" title="Refuser">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+}
+
+<!-- ============================================================
+     PANNEAU — Nouvelle demande de congé
+     ============================================================ -->
 @if (showLeavePanel()) {
-  <div class="fixed inset-0 bg-black/30 z-40 backdrop-blur-sm" (click)="showLeavePanel.set(false)"></div>
-  <div class="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-white shadow-2xl flex flex-col">
-    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-      <h2 class="text-lg font-semibold text-gray-900">Nouvelle demande de congé</h2>
-      <button type="button" (click)="showLeavePanel.set(false)" class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100">
+  <div class="fixed inset-0 bg-black/40 z-40 backdrop-blur-sm" (click)="showLeavePanel.set(false)"></div>
+  <div class="fixed top-0 right-0 h-full w-full max-w-md bg-white z-50 flex flex-col shadow-2xl">
+    <div class="flex items-center justify-between px-6 py-5 border-b border-gray-100 shrink-0">
+      <div>
+        <h2 class="text-lg font-bold text-gray-900">Nouvelle demande de congé</h2>
+        <p class="text-xs text-gray-500 mt-0.5">Remplissez les informations</p>
+      </div>
+      <button type="button" (click)="showLeavePanel.set(false)" class="p-2 rounded-xl text-gray-400 hover:bg-gray-100">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
     </div>
-    <div class="flex-1 px-6 py-5 space-y-4">
+    <div class="flex-1 overflow-y-auto px-6 py-5 space-y-5">
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1.5">Type de congé</label>
-        <select [(ngModel)]="leaveForm.type" class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400">
+        <label class="block text-sm font-semibold text-gray-700 mb-1.5">Employé <span class="text-red-500">*</span></label>
+        <select [(ngModel)]="leaveForm.employee_id"
+          class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400">
+          <option [value]="0" disabled>Sélectionner un employé…</option>
+          @for (emp of employees(); track emp.id) {
+            <option [value]="emp.id">{{ emp.full_name }}</option>
+          }
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1.5">Type de congé</label>
+        <select [(ngModel)]="leaveForm.type"
+          class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400">
           <option value="conge_annuel">Congé annuel</option>
           <option value="maladie">Maladie</option>
           <option value="sans_solde">Sans solde</option>
           <option value="autre">Autre</option>
         </select>
       </div>
-      <div class="grid grid-cols-2 gap-3">
+      <div class="grid grid-cols-2 gap-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1.5">Date début</label>
-          <input type="date" [(ngModel)]="leaveForm.start_date" class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"/>
+          <label class="block text-sm font-semibold text-gray-700 mb-1.5">Date de début</label>
+          <input type="date" [(ngModel)]="leaveForm.start_date"
+            class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"/>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1.5">Date fin</label>
-          <input type="date" [(ngModel)]="leaveForm.end_date" class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"/>
+          <label class="block text-sm font-semibold text-gray-700 mb-1.5">Date de fin</label>
+          <input type="date" [(ngModel)]="leaveForm.end_date"
+            class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"/>
         </div>
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1.5">Motif</label>
-        <textarea [(ngModel)]="leaveForm.reason" rows="3" placeholder="Motif de la demande..."
-          class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 resize-none"></textarea>
+        <label class="block text-sm font-semibold text-gray-700 mb-1.5">Motif (optionnel)</label>
+        <textarea [(ngModel)]="leaveForm.reason" rows="3" placeholder="Précisez le motif…"
+          class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"></textarea>
       </div>
     </div>
-    <div class="px-6 py-4 border-t border-gray-100 flex gap-3">
-      <button type="button" (click)="showLeavePanel.set(false)" class="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50">Annuler</button>
-      <button type="button" (click)="submitLeave()" [disabled]="leaveLoading()"
-        class="flex-1 px-4 py-2.5 rounded-xl bg-pink-600 text-white text-sm font-medium hover:bg-pink-700 disabled:opacity-50 flex items-center justify-center gap-2">
-        @if (leaveLoading()) { <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg> }
-        Soumettre
+    <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/50 shrink-0 flex gap-3">
+      <button type="button" (click)="showLeavePanel.set(false)" class="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-100">Annuler</button>
+      <button type="button" (click)="submitLeave()" [disabled]="!leaveForm.employee_id || !leaveForm.start_date || !leaveForm.end_date || leaveLoading()"
+        class="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-semibold flex items-center justify-center gap-2 transition-colors">
+        @if (leaveLoading()) {
+          <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+        }
+        Soumettre la demande
       </button>
     </div>
   </div>

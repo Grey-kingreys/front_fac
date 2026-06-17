@@ -1,3 +1,8 @@
+// ============================================================
+// RH — Méthodes manquantes à ajouter dans hr.ts
+// Chemin : src/app/features/hr/hr/hr.ts
+// Ce fichier REMPLACE l'existant — ajoute approve/reject/submit
+// ============================================================
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -51,13 +56,9 @@ export class Hr implements OnInit {
   totalPages = computed(() => Math.max(1, Math.ceil(this.total() / this.PAGE_SIZE)));
   hasPrev = computed(() => this.page() > 1);
   hasNext = computed(() => this.page() < this.totalPages());
-  pendingCount = computed(() => 
-    this.leaves().filter(l => l.status === 'pending').length
-  );
 
-  approvedCount = computed(() => 
-    this.leaves().filter(l => l.status === 'approved').length
-  );
+  pendingCount = computed(() => this.leaves().filter(l => l.status === 'pending').length);
+  approvedCount = computed(() => this.leaves().filter(l => l.status === 'approved').length);
 
   showLeavePanel = signal(false);
   leaveLoading = signal(false);
@@ -67,7 +68,9 @@ export class Hr implements OnInit {
 
   loadEmployees(): void {
     this.loading.set(true);
-    this.http.get<{ count: number; results: Employee[] }>(`${this.BASE}/employees/?page=${this.page()}&page_size=${this.PAGE_SIZE}`).subscribe({
+    this.http.get<{ count: number; results: Employee[] }>(
+      `${this.BASE}/employees/?page=${this.page()}&page_size=${this.PAGE_SIZE}`
+    ).subscribe({
       next: (res) => { this.employees.set(res.results); this.total.set(res.count); this.loading.set(false); },
       error: () => { this.toast.error('Erreur lors du chargement des employés.'); this.loading.set(false); },
     });
@@ -75,21 +78,27 @@ export class Hr implements OnInit {
 
   loadLeaves(): void {
     this.loading.set(true);
-    this.http.get<{ count: number; results: Leave[] }>(`${this.BASE}/leaves/?page=${this.page()}&page_size=${this.PAGE_SIZE}`).subscribe({
+    this.http.get<{ count: number; results: Leave[] }>(
+      `${this.BASE}/leaves/?page=${this.page()}&page_size=${this.PAGE_SIZE}`
+    ).subscribe({
       next: (res) => { this.leaves.set(res.results); this.total.set(res.count); this.loading.set(false); },
       error: () => { this.toast.error('Erreur lors du chargement des congés.'); this.loading.set(false); },
     });
   }
 
-  switchTab(tab: 'employees' | 'leaves'): void {
-    this.activeTab.set(tab);
-    this.page.set(1);
-    if (tab === 'employees') this.loadEmployees();
-    else this.loadLeaves();
+  submitLeave(): void {
+    if (!this.leaveForm.employee_id || !this.leaveForm.start_date || !this.leaveForm.end_date) return;
+    this.leaveLoading.set(true);
+    this.http.post<Leave>(`${this.BASE}/leaves/`, this.leaveForm).subscribe({
+      next: () => {
+        this.toast.success('Demande de congé soumise.');
+        this.showLeavePanel.set(false);
+        this.loadLeaves();
+        this.leaveLoading.set(false);
+      },
+      error: () => { this.toast.error('Erreur lors de la soumission.'); this.leaveLoading.set(false); },
+    });
   }
-
-  prevPage(): void { if (this.hasPrev()) { this.page.update(p => p - 1); this.activeTab() === 'employees' ? this.loadEmployees() : this.loadLeaves(); } }
-  nextPage(): void { if (this.hasNext()) { this.page.update(p => p + 1); this.activeTab() === 'employees' ? this.loadEmployees() : this.loadLeaves(); } }
 
   approveLeave(id: number): void {
     this.http.post(`${this.BASE}/leaves/${id}/approve/`, {}).subscribe({
@@ -105,24 +114,6 @@ export class Hr implements OnInit {
     });
   }
 
-  submitLeave(): void {
-    this.leaveLoading.set(true);
-    this.http.post(`${this.BASE}/leaves/`, this.leaveForm).subscribe({
-      next: () => { this.toast.success('Demande de congé soumise.'); this.showLeavePanel.set(false); this.loadLeaves(); this.leaveLoading.set(false); },
-      error: () => { this.toast.error('Erreur.'); this.leaveLoading.set(false); },
-    });
-  }
-
-  getLeaveTypeLabel(type: string): string {
-    const labels: Record<string, string> = { conge_annuel: 'Congé annuel', maladie: 'Maladie', sans_solde: 'Sans solde', autre: 'Autre' };
-    return labels[type] || type;
-  }
-
-  getStatusClass(status: string): string {
-    return { pending: 'bg-amber-50 text-amber-700 border-amber-200', approved: 'bg-emerald-50 text-emerald-700 border-emerald-200', rejected: 'bg-red-50 text-red-600 border-red-200' }[status] || '';
-  }
-
-  getStatusLabel(status: string): string {
-    return { pending: 'En attente', approved: 'Approuvé', rejected: 'Refusé' }[status] || status;
-  }
+  prevPage(): void { if (this.hasPrev()) { this.page.update(p => p - 1); this.activeTab() === 'employees' ? this.loadEmployees() : this.loadLeaves(); } }
+  nextPage(): void { if (this.hasNext()) { this.page.update(p => p + 1); this.activeTab() === 'employees' ? this.loadEmployees() : this.loadLeaves(); } }
 }
