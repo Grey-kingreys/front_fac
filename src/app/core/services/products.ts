@@ -1,39 +1,103 @@
 // ============================================================
-// PRODUCTS SERVICE — Version finale avec CRUD Catégories & Unités
+// PRODUCTS SERVICE — Interfaces mises à jour depuis le backend
 // Chemin : src/app/core/services/products.ts
 //
-// Routes confirmées côté backend :
-//   GET/POST   /api/categories/
-//   PATCH/DEL  /api/categories/{id}/
-//   GET/POST   /api/unites/
-//   PATCH/DEL  /api/unites/{id}/
-//   GET/POST   /api/produits/
-//   PATCH/DEL  /api/produits/{id}/
+// MISE À JOUR backend (après git pull) :
+//   CategorieSerializer :
+//     - Ajout champ "tva_taux" (Decimal, default=0)
+//     - Contrainte unique : name par company
+//     - read_only : id, nombre_produits, created_at
 //
-// Champs Catégorie (CategorieSerializer) :
-//   writable : name, description, couleur, is_active
-//   readonly : id, nombre_produits, created_at
+//   UniteSerializer :
+//     - Contrainte unique : symbole par company
+//     - read_only : id, created_at
 //
-// Champs Unité (UniteSerializer) :
-//   writable : name, symbole, is_active
-//   readonly : id, created_at
+// Routes confirmées :
+//   GET/POST        /api/categories/
+//   GET/PATCH/DEL   /api/categories/{id}/
+//   GET/POST        /api/unites/
+//   GET/PATCH/DEL   /api/unites/{id}/
+//   GET/POST        /api/produits/
+//   GET/PATCH/DEL   /api/produits/{id}/
 // ============================================================
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
-// ── Produit ───────────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// CATÉGORIE
+// ══════════════════════════════════════════════════════════════════════════════
 
+/** Ce que le backend retourne (lecture) */
+export interface Categorie {
+  id: number;
+  name: string;
+  description: string;
+  couleur: string;          // ex: "#6366f1"
+  tva_taux: string;         // Decimal sérialisé en string ex: "18.00"
+  is_active: boolean;
+  nombre_produits: number;  // read_only — nb produits actifs liés
+  created_at: string;
+}
+
+/** Ce qu'on envoie pour créer ou modifier */
+export interface CategoriePayload {
+  name: string;             // obligatoire — unique par company
+  description?: string;
+  couleur?: string;         // défaut: "#6366f1"
+  tva_taux?: number;        // Taux TVA par défaut (appliqué aux produits) ex: 18
+  is_active?: boolean;
+}
+
+export interface PaginatedCategories {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: Categorie[];
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// UNITÉ
+// ══════════════════════════════════════════════════════════════════════════════
+
+/** Ce que le backend retourne (lecture) */
+export interface Unite {
+  id: number;
+  name: string;
+  symbole: string;    // unique par company ex: "kg", "L", "ctn"
+  is_active: boolean;
+  created_at: string;
+}
+
+/** Ce qu'on envoie pour créer ou modifier */
+export interface UnitePayload {
+  name: string;       // obligatoire
+  symbole: string;    // obligatoire — unique par company
+  is_active?: boolean;
+}
+
+export interface PaginatedUnites {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: Unite[];
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PRODUIT
+// ══════════════════════════════════════════════════════════════════════════════
+
+/** Interface utilisée dans les templates Angular */
 export interface Product {
   id: number;
   name: string;
   reference: string;
   description?: string;
-  category?: string;
-  category_id?: number;
-  unit: string;
-  unit_id?: number;
+  category?: string;         // categorie_nom (read_only)
+  category_id?: number;      // ID FK categorie
+  unit: string;              // unite_symbole (read_only)
+  unit_id?: number;          // ID FK unite
   purchase_price: number;
   selling_price: number;
   tva_rate: number;
@@ -55,66 +119,21 @@ export interface ProductListParams {
   is_active?: boolean;
 }
 
+/** Ce qu'on envoie au backend pour créer/modifier */
 export interface ProductPayload {
-  nom: string;
-  reference: string;
+  nom: string;          // obligatoire
+  reference: string;    // obligatoire
   description?: string;
-  categorie: number;    // obligatoire — ID FK
-  unite: number;        // obligatoire — ID FK
+  categorie: number;    // FK obligatoire — ID de Categorie
+  unite: number;        // FK obligatoire — ID de Unite
   prix_achat?: number;
-  prix_vente: number;
+  prix_vente: number;   // obligatoire
   tva_taux?: number;
   seuil_alerte?: number;
   is_active?: boolean;
 }
 
-// ── Catégorie ─────────────────────────────────────────────────────────────────
-
-export interface Categorie {
-  id: number;
-  name: string;
-  description?: string;
-  couleur: string;         // ex: "#6366f1"
-  is_active: boolean;
-  nombre_produits?: number;
-  created_at?: string;
-}
-
-export interface PaginatedCategories {
-  count: number;
-  results: Categorie[];
-}
-
-export interface CategoriePayload {
-  name: string;
-  description?: string;
-  couleur?: string;        // défaut: "#6366f1"
-  is_active?: boolean;
-}
-
-// ── Unité ─────────────────────────────────────────────────────────────────────
-
-export interface Unite {
-  id: number;
-  name: string;
-  symbole: string;         // ex: "kg", "L", "pièce"
-  is_active: boolean;
-  created_at?: string;
-}
-
-export interface PaginatedUnites {
-  count: number;
-  results: Unite[];
-}
-
-export interface UnitePayload {
-  name: string;
-  symbole: string;
-  is_active?: boolean;
-}
-
-// ── Réponse brute backend ─────────────────────────────────────────────────────
-
+/** Réponse brute du backend (ProduitListSerializer) */
 interface BackendProduct {
   id: number;
   nom: string;
@@ -138,15 +157,19 @@ interface BackendPaginated {
   results: BackendProduct[];
 }
 
+// ══════════════════════════════════════════════════════════════════════════════
+// SERVICE
+// ══════════════════════════════════════════════════════════════════════════════
+
 @Injectable({ providedIn: 'root' })
 export class ProductsService {
   private http = inject(HttpClient);
 
-  private readonly BASE_PRODUITS    = `${environment.apiUrl}/produits`;
-  private readonly BASE_CATEGORIES  = `${environment.apiUrl}/categories`;
-  private readonly BASE_UNITES      = `${environment.apiUrl}/unites`;
+  private readonly BASE_PRODUITS   = `${environment.apiUrl}/produits`;
+  private readonly BASE_CATEGORIES = `${environment.apiUrl}/categories`;
+  private readonly BASE_UNITES     = `${environment.apiUrl}/unites`;
 
-  // ── Mapping backend → Angular ─────────────────────────────────────────────
+  // ── Mapping backend → interface Angular ──────────────────────────────────
 
   private mapProduct(p: BackendProduct): Product {
     return {
@@ -198,10 +221,15 @@ export class ProductsService {
 
   // ── CRUD Catégories ───────────────────────────────────────────────────────
 
-  listCategories(params: { page_size?: number } = {}): Observable<PaginatedCategories> {
+  listCategories(params: { page_size?: number; is_active?: boolean } = {}): Observable<PaginatedCategories> {
     const q = new URLSearchParams();
     q.set('page_size', String(params.page_size ?? 100));
+    if (params.is_active !== undefined) q.set('is_active', String(params.is_active));
     return this.http.get<PaginatedCategories>(`${this.BASE_CATEGORIES}/?${q.toString()}`);
+  }
+
+  getCategorie(id: number): Observable<Categorie> {
+    return this.http.get<Categorie>(`${this.BASE_CATEGORIES}/${id}/`);
   }
 
   createCategorie(data: CategoriePayload): Observable<Categorie> {
@@ -218,10 +246,15 @@ export class ProductsService {
 
   // ── CRUD Unités ───────────────────────────────────────────────────────────
 
-  listUnites(params: { page_size?: number } = {}): Observable<PaginatedUnites> {
+  listUnites(params: { page_size?: number; is_active?: boolean } = {}): Observable<PaginatedUnites> {
     const q = new URLSearchParams();
     q.set('page_size', String(params.page_size ?? 100));
+    if (params.is_active !== undefined) q.set('is_active', String(params.is_active));
     return this.http.get<PaginatedUnites>(`${this.BASE_UNITES}/?${q.toString()}`);
+  }
+
+  getUnite(id: number): Observable<Unite> {
+    return this.http.get<Unite>(`${this.BASE_UNITES}/${id}/`);
   }
 
   createUnite(data: UnitePayload): Observable<Unite> {
