@@ -1,7 +1,8 @@
 <!-- ============================================================
-     DOCUMENTS — Gestion documentaire centralisée
-     Chemin : src/app/features/documents/documents/documents.html
-     Connecté à : HttpClient → /api/documents/
+     DOCUMENTS — Gestion documentaire
+     Route : GET/POST /api/documents/
+     CORRECTIONS : titre (pas name), type_document (pas category),
+                   fichier (pas file_url), uploade_par_nom
      ============================================================ -->
 
 <!-- En-tête -->
@@ -12,162 +13,227 @@
   </div>
   <button type="button" (click)="openUploadPanel()"
     class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm">
-    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-    Uploader un document
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+    </svg>
+    Uploader
   </button>
 </div>
 
 <!-- Filtres -->
 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-4 flex flex-wrap gap-3 items-center">
   <div class="relative flex-1 min-w-[200px]">
-    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35"/></svg>
+    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+      <circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35"/>
+    </svg>
     <input type="text" [(ngModel)]="search" (ngModelChange)="onSearch()"
       placeholder="Rechercher un document…"
       class="w-full pl-9 pr-4 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"/>
   </div>
+  <!-- ✅ Filtre type_document (pas category) -->
   <select [(ngModel)]="categoryFilter" (ngModelChange)="page.set(1); load()"
-    class="px-3.5 py-2 rounded-xl border border-gray-200 text-sm bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400">
-    <option value="">Toutes catégories</option>
-    <option value="contrat">Contrats</option>
-    <option value="facture">Factures</option>
-    <option value="bon_livraison">Bons de livraison</option>
-    <option value="rapport">Rapports</option>
-    <option value="autre">Autres</option>
+    class="px-3.5 py-2 rounded-xl border border-gray-200 text-sm bg-white text-gray-700 focus:outline-none">
+    <option value="">Tous types</option>
+    @for (t of docTypes; track t.value) {
+      <option [value]="t.value">{{ t.label }}</option>
+    }
   </select>
 </div>
 
-<!-- Grille de documents -->
+<!-- Chargement -->
 @if (loading()) {
   <div class="flex items-center justify-center py-20 text-gray-400 gap-3">
-    <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+    <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+    </svg>
     Chargement…
   </div>
 }
 
+<!-- Vide -->
 @if (!loading() && documents().length === 0) {
   <div class="flex flex-col items-center justify-center py-24 text-center bg-white rounded-2xl border border-gray-100 shadow-sm">
     <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mb-4">
-      <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+      <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
+      </svg>
     </div>
-    <p class="font-semibold text-gray-700 mb-1">Aucun document trouvé</p>
-    <p class="text-sm text-gray-400">Uploadez votre premier document.</p>
+    <p class="font-semibold text-gray-700 mb-1">Aucun document</p>
+    <p class="text-sm text-gray-400 mb-4">Uploadez votre premier document.</p>
+    <button type="button" (click)="openUploadPanel()"
+      class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl">
+      + Uploader un document
+    </button>
   </div>
 }
 
+<!-- Grille de documents -->
 @if (!loading() && documents().length > 0) {
   <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
     @for (doc of documents(); track doc.id) {
-      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition-shadow group">
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition-shadow">
+
         <div class="flex items-start gap-3 mb-4">
-          <!-- Icône type de fichier -->
+          <!-- Icône type fichier -->
           <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
-            [class]="doc.name.endsWith('.pdf') ? 'bg-red-100' : doc.name.endsWith('.xlsx') || doc.name.endsWith('.csv') ? 'bg-emerald-100' : 'bg-blue-100'">
-            @if (doc.name.endsWith('.pdf')) {
-              <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+            [class]="getFileExt(doc.fichier) === 'pdf' ? 'bg-red-100' : getFileExt(doc.fichier) === 'xlsx' || getFileExt(doc.fichier) === 'xls' ? 'bg-emerald-100' : 'bg-blue-100'">
+            @if (getFileExt(doc.fichier) === 'pdf') {
+              <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+              </svg>
             } @else {
-              <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
             }
           </div>
           <div class="flex-1 min-w-0">
-            <p class="font-semibold text-gray-900 text-sm truncate" title="{{ doc.name }}">{{ doc.name }}</p>
-            <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-xs font-medium mt-1">
-              {{ { contrat: 'Contrat', facture: 'Facture', bon_livraison: 'Bon livraison', rapport: 'Rapport', autre: 'Autre' }[doc.category] || doc.category }}
+            <!-- ✅ doc.titre (pas doc.name) -->
+            <p class="font-semibold text-gray-900 text-sm truncate" [title]="doc.titre">
+              {{ doc.titre }}
+            </p>
+            <!-- ✅ doc.type_label (pas doc.category) -->
+            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium mt-1"
+              [ngClass]="getTypeColor(doc.type_document)">
+              {{ doc.type_label }}
             </span>
           </div>
         </div>
-        <div class="space-y-1.5 text-xs text-gray-400 mb-4">
+
+        <div class="space-y-1 text-xs text-gray-400 mb-4">
           <div class="flex items-center justify-between">
             <span>Ajouté par</span>
-            <span class="font-medium text-gray-600">{{ doc.created_by_name }}</span>
+            <!-- ✅ doc.uploade_par_nom (pas doc.created_by_name) -->
+            <span class="font-medium text-gray-600">{{ doc.uploade_par_nom }}</span>
           </div>
-          <div class="flex items-center justify-between">
-            <span>Taille</span>
-            <span class="font-medium text-gray-600">{{ (doc.file_size / 1024).toFixed(0) }} Ko</span>
-          </div>
+          @if (doc.employe_nom) {
+            <div class="flex items-center justify-between">
+              <span>Employé</span>
+              <span class="font-medium text-gray-600">{{ doc.employe_nom }}</span>
+            </div>
+          }
           <div class="flex items-center justify-between">
             <span>Date</span>
             <span class="font-medium text-gray-600">{{ doc.created_at | date:'dd/MM/yyyy' }}</span>
           </div>
         </div>
+
         <div class="flex gap-2 pt-3 border-t border-gray-100">
-          <a [href]="doc.file_url" target="_blank" rel="noopener"
+          <!-- ✅ doc.fichier (pas doc.file_url) -->
+          <a [href]="doc.fichier" target="_blank" rel="noopener noreferrer"
             class="flex-1 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold text-center transition-colors">
-            Voir
+            ↗ Ouvrir
           </a>
           <button type="button" (click)="deleteDocument(doc.id)"
-            class="py-2 px-3 rounded-xl border border-gray-200 hover:bg-red-50 hover:border-red-200 hover:text-red-600 text-gray-400 text-xs font-semibold transition-colors">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            class="py-2 px-3 rounded-xl border border-gray-200 hover:bg-red-50 hover:border-red-200 hover:text-red-600 text-gray-400 text-xs transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+            </svg>
           </button>
         </div>
+
       </div>
     }
   </div>
 
-  <!-- Pagination -->
   @if (totalPages() > 1) {
     <div class="flex items-center justify-between mt-6">
-      <p class="text-xs text-gray-500">Page {{ page() }} sur {{ totalPages() }}</p>
+      <p class="text-xs text-gray-500">Page {{ page() }} / {{ totalPages() }}</p>
       <div class="flex gap-1">
-        <button type="button" (click)="prevPage()" [disabled]="!hasPrev()" class="px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-40">← Précédent</button>
-        <button type="button" (click)="nextPage()" [disabled]="!hasNext()" class="px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-40">Suivant →</button>
+        <button type="button" (click)="prevPage()" [disabled]="!hasPrev()"
+          class="px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-40">← Précédent</button>
+        <button type="button" (click)="nextPage()" [disabled]="!hasNext()"
+          class="px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-40">Suivant →</button>
       </div>
     </div>
   }
 }
 
+
 <!-- ============================================================
-     PANNEAU — Upload d'un document
+     PANNEAU — Upload document
+     FormData : fichier, titre, type_document
      ============================================================ -->
 @if (showUpload()) {
   <div class="fixed inset-0 bg-black/40 z-40 backdrop-blur-sm" (click)="showUpload.set(false)"></div>
   <div class="fixed top-0 right-0 h-full w-full max-w-md bg-white z-50 flex flex-col shadow-2xl">
+
     <div class="flex items-center justify-between px-6 py-5 border-b border-gray-100 shrink-0">
       <div>
         <h2 class="text-lg font-bold text-gray-900">Uploader un document</h2>
-        <p class="text-xs text-gray-500 mt-0.5">Formats acceptés : PDF, Excel, Word, images</p>
+        <p class="text-xs text-gray-500 mt-0.5">PDF, Excel, Word, images (max. 10 Mo)</p>
       </div>
-      <button type="button" (click)="showUpload.set(false)" class="p-2 rounded-xl text-gray-400 hover:bg-gray-100 transition-colors">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      <button type="button" (click)="showUpload.set(false)" class="p-2 rounded-xl text-gray-400 hover:bg-gray-100">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
       </button>
     </div>
+
     <div class="flex-1 overflow-y-auto px-6 py-5 space-y-5">
-      <!-- Zone de dépôt de fichier -->
+
+      <!-- Zone de dépôt -->
       <div class="border-2 border-dashed border-gray-300 rounded-2xl p-8 text-center hover:border-blue-400 transition-colors cursor-pointer"
         (click)="fileInput.click()">
-        <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.338-2.32 5.75 5.75 0 011.84 9.275.75.75 0 01-.47.275H6.75z"/></svg>
-        <p class="text-sm font-semibold text-gray-600 mb-1">
-          @if (uploadForm.file) { {{ uploadForm.file.name }} } @else { Cliquez pour sélectionner }
-        </p>
-        <p class="text-xs text-gray-400">PDF, Excel, Word, PNG, JPG (max. 10 Mo)</p>
+        @if (uploadForm.file) {
+          <svg class="w-10 h-10 text-blue-500 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <p class="text-sm font-semibold text-gray-700">{{ uploadForm.file.name }}</p>
+          <p class="text-xs text-gray-400 mt-1">Cliquez pour changer</p>
+        } @else {
+          <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.338-2.32 5.75 5.75 0 011.84 9.275.75.75 0 01-.47.275H6.75z"/>
+          </svg>
+          <p class="text-sm font-semibold text-gray-600">Cliquez pour sélectionner un fichier</p>
+          <p class="text-xs text-gray-400 mt-1">PDF, Excel, Word, PNG, JPG</p>
+        }
         <input #fileInput type="file" accept=".pdf,.xlsx,.xls,.doc,.docx,.png,.jpg,.jpeg" class="hidden"
           (change)="onFileChange($event)"/>
       </div>
+
+      <!-- ✅ Titre (pas name) -->
       <div>
-        <label class="block text-sm font-semibold text-gray-700 mb-1.5">Nom du document <span class="text-red-500">*</span></label>
-        <input type="text" [(ngModel)]="uploadForm.name" placeholder="Ex: Contrat fournisseur Alpha 2024"
+        <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+          Titre du document <span class="text-red-500">*</span>
+        </label>
+        <input type="text" [(ngModel)]="uploadForm.titre"
+          placeholder="Ex: Contrat Diallo Trading 2026"
           class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"/>
       </div>
+
+      <!-- ✅ Type document (pas category) -->
       <div>
-        <label class="block text-sm font-semibold text-gray-700 mb-1.5">Catégorie</label>
-        <select [(ngModel)]="uploadForm.category"
+        <label class="block text-sm font-semibold text-gray-700 mb-1.5">Type de document</label>
+        <select [(ngModel)]="uploadForm.type_document"
           class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400">
-          <option value="contrat">Contrat</option>
-          <option value="facture">Facture</option>
-          <option value="bon_livraison">Bon de livraison</option>
-          <option value="rapport">Rapport</option>
-          <option value="autre">Autre</option>
+          @for (t of docTypes; track t.value) {
+            <option [value]="t.value">{{ t.label }}</option>
+          }
         </select>
       </div>
+
     </div>
+
     <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/50 shrink-0 flex gap-3">
-      <button type="button" (click)="showUpload.set(false)" class="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors">Annuler</button>
-      <button type="button" (click)="uploadDocument()" [disabled]="!uploadForm.file || !uploadForm.name || uploadLoading()"
+      <button type="button" (click)="showUpload.set(false)"
+        class="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-100">
+        Annuler
+      </button>
+      <button type="button" (click)="uploadDocument()"
+        [disabled]="!canUpload() || uploadLoading()"
         class="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-semibold flex items-center justify-center gap-2 transition-colors">
         @if (uploadLoading()) {
-          <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+          <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+          </svg>
           Upload en cours…
         } @else {
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+          </svg>
           Uploader
         }
       </button>

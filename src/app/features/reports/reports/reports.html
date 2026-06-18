@@ -1,81 +1,163 @@
+<!-- ============================================================
+     RAPPORTS & ANALYSES
+     Routes réelles : /api/analytics/ventes/ | /stock/ | /finance/
+     ============================================================ -->
+
+<!-- En-tête -->
 <div class="mb-6">
   <h1 class="text-2xl font-bold text-gray-900">Rapports & Analyses</h1>
-  <p class="text-sm text-gray-500 mt-1">Vue d'ensemble de l'activité</p>
+  <p class="text-sm text-gray-500 mt-1">Vue d'ensemble de l'activité de votre entreprise</p>
 </div>
 
 <!-- Filtre période -->
-<div class="flex gap-2 mb-6">
-  @for (p of [['today','Aujourd\'hui'],['week','Cette semaine'],['month','Ce mois'],['year','Cette année']]; track p[0]) {
-    <button type="button" (click)="setPeriod($any(p[0]))"
-      class="px-4 py-2 rounded-xl text-sm font-medium border transition-colors"
-      [class]="period() === p[0] ? 'bg-blue-600 text-white border-blue-600' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'">
-      {{ p[1] }}
+<div class="flex flex-wrap gap-2 mb-6">
+  @for (p of PERIODS; track p.value) {
+    <button type="button" (click)="setPeriod(p.value)"
+      class="px-4 py-2 rounded-xl text-sm font-semibold border transition-colors"
+      [class]="period() === p.value
+        ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+        : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'">
+      {{ p.label }}
     </button>
   }
 </div>
 
+<!-- Chargement -->
 @if (loading()) {
-  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm flex items-center justify-center py-20 text-gray-400">
-    <svg class="w-6 h-6 animate-spin mr-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
-    Chargement...
+  <div class="flex items-center justify-center py-20 text-gray-400 gap-3">
+    <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+    </svg>
+    Chargement des données…
   </div>
 }
 
-@if (!loading() && data() !== null) {
-  <!-- KPIs -->
-  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+@if (!loading()) {
+
+  <!-- ── KPIs VENTES ──────────────────────────────────────────────── -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+
+    <!-- Total commandes -->
+    <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
       <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center mb-3">
-        <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+        </svg>
       </div>
-      <p class="text-2xl font-bold text-gray-900">{{ data()!.total_ventes }}</p>
-      <p class="text-sm text-gray-500">Ventes</p>
+      <p class="text-2xl font-bold text-gray-900">{{ totalVentes() || '—' }}</p>
+      <p class="text-sm text-gray-500 mt-0.5">Commandes</p>
     </div>
-    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+
+    <!-- CA TTC -->
+    <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
       <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center mb-3">
-        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2"/></svg>
+        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
       </div>
-      <p class="text-2xl font-bold text-gray-900">{{ formatPrice(data()!.total_ttc) }}</p>
-      <p class="text-sm text-gray-500">Chiffre d'affaires TTC</p>
+      <p class="text-2xl font-bold text-gray-900">{{ formatPrice(caTTC()) }}</p>
+      <p class="text-sm text-gray-500 mt-0.5">CA TTC</p>
     </div>
-    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-      <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center mb-3">
-        <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+
+    <!-- Montant encaissé -->
+    <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+      <div class="w-10 h-10 bg-teal-100 rounded-xl flex items-center justify-center mb-3">
+        <svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
       </div>
-      <p class="text-2xl font-bold text-gray-900">{{ data()!.total_produits }}</p>
-      <p class="text-sm text-gray-500">Produits actifs</p>
+      <p class="text-2xl font-bold text-gray-900">{{ formatPrice(montantPaye()) }}</p>
+      <p class="text-sm text-gray-500 mt-0.5">Encaissé</p>
     </div>
-    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-      <div class="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center mb-3">
-        <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12"/></svg>
+
+    <!-- Alertes stock -->
+    <div class="rounded-2xl p-5 shadow-sm border"
+      [class]="alertesStock() > 0 ? 'bg-red-50 border-red-200' : 'bg-white border-gray-100'">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
+        [class]="alertesStock() > 0 ? 'bg-red-100' : 'bg-amber-100'">
+        <svg class="w-5 h-5" [class]="alertesStock() > 0 ? 'text-red-600' : 'text-amber-600'"
+          fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
       </div>
-      <p class="text-2xl font-bold text-gray-900">{{ data()!.total_mouvements }}</p>
-      <p class="text-sm text-gray-500">Mouvements de stock</p>
+      <p class="text-2xl font-bold" [class]="alertesStock() > 0 ? 'text-red-700' : 'text-gray-900'">
+        {{ alertesStock() }}
+      </p>
+      <p class="text-sm mt-0.5" [class]="alertesStock() > 0 ? 'text-red-600' : 'text-gray-500'">
+        Alertes stock
+      </p>
     </div>
   </div>
 
-  <!-- Top produits -->
-  @if ((data()?.top_produits?.length ?? 0) > 0) {
+  <!-- ── KPIs FINANCE ─────────────────────────────────────────────── -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+      <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Recettes</p>
+      <p class="text-xl font-bold text-emerald-600">{{ formatPrice(recettes()) }}</p>
+    </div>
+    <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+      <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Dépenses</p>
+      <p class="text-xl font-bold text-red-600">{{ formatPrice(depenses()) }}</p>
+    </div>
+    <div class="rounded-2xl p-5 shadow-sm border"
+      [class]="soldeFinance() >= 0 ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2"
+        [class]="soldeFinance() >= 0 ? 'text-emerald-600' : 'text-red-600'">Solde net</p>
+      <p class="text-xl font-bold"
+        [class]="soldeFinance() >= 0 ? 'text-emerald-700' : 'text-red-700'">
+        {{ formatPrice(soldeFinance()) }}
+      </p>
+    </div>
+  </div>
+
+  <!-- ── CA PAR DÉPÔT ──────────────────────────────────────────────── -->
+  @if (parDepot().length > 0) {
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
+      <h2 class="text-base font-bold text-gray-900 mb-5">Chiffre d'affaires par dépôt</h2>
+      <div class="space-y-3">
+        @for (depot of parDepot(); track depot.depot_code) {
+          <div class="flex items-center gap-3">
+            <div class="w-24 shrink-0">
+              <p class="text-xs font-semibold text-gray-700 truncate">{{ depot.depot_nom }}</p>
+              <p class="text-xs text-gray-400 font-mono">{{ depot.depot_code }}</p>
+            </div>
+            <div class="flex-1 bg-gray-100 rounded-full h-2.5">
+              <div class="bg-blue-500 rounded-full h-2.5 transition-all"
+                [style.width.%]="barWidth(depot.ca_ttc)"></div>
+            </div>
+            <div class="w-32 text-right shrink-0">
+              <p class="text-sm font-bold text-gray-900">{{ formatPriceStr(depot.ca_ttc) }}</p>
+              <p class="text-xs text-gray-400">{{ depot.nb_commandes }} cmd</p>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ── TOP PRODUITS SORTIE ───────────────────────────────────────── -->
+  @if (topProduits().length > 0) {
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
       <div class="px-6 py-4 border-b border-gray-100">
-        <h2 class="font-semibold text-gray-900">Top produits vendus</h2>
+        <h2 class="text-base font-bold text-gray-900">Top produits — sorties de stock</h2>
       </div>
       <table class="w-full text-sm">
         <thead>
           <tr class="border-b border-gray-50 bg-slate-50/60">
-            <th class="text-left px-5 py-3 font-semibold text-gray-500 text-xs uppercase">#</th>
-            <th class="text-left px-4 py-3 font-semibold text-gray-500 text-xs uppercase">Produit</th>
-            <th class="text-right px-4 py-3 font-semibold text-gray-500 text-xs uppercase">Quantité</th>
-            <th class="text-right px-4 py-3 font-semibold text-gray-500 text-xs uppercase">Chiffre d'affaires</th>
+            <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">#</th>
+            <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Produit</th>
+            <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">Référence</th>
+            <th class="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Quantité sortie</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-50">
-          @for (p of data()!.top_produits; track p.name; let i = $index) {
+          @for (p of topProduits(); track p.reference; let i = $index) {
             <tr class="hover:bg-slate-50/50">
               <td class="px-5 py-3 text-gray-400 font-mono text-xs">{{ i + 1 }}</td>
-              <td class="px-4 py-3 font-medium text-gray-900">{{ p.name }}</td>
-              <td class="px-4 py-3 text-right text-gray-600 tabular-nums">{{ p.quantity }}</td>
-              <td class="px-4 py-3 text-right font-bold text-gray-900 tabular-nums">{{ formatPrice(p.revenue) }}</td>
+              <td class="px-4 py-3 font-semibold text-gray-900">{{ p.nom }}</td>
+              <td class="px-4 py-3 text-gray-400 font-mono text-xs hidden md:table-cell">{{ p.reference }}</td>
+              <td class="px-4 py-3 text-right font-bold text-gray-900 tabular-nums">{{ p.total_sortie }}</td>
             </tr>
           }
         </tbody>
@@ -83,29 +165,41 @@
     </div>
   }
 
-  <!-- Ventes par jour -->
-  @if ((data()?.ventes_par_jour?.length ?? 0) > 0) {
-    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-      <h2 class="font-semibold text-gray-900 mb-4">Évolution des ventes</h2>
-      <div class="space-y-2">
-        @for (day of data()!.ventes_par_jour; track day.date) {
-          <div class="flex items-center gap-3">
-            <span class="text-xs text-gray-400 w-24 shrink-0">{{ day.date | date:'dd/MM' }}</span>
-            <div class="flex-1 bg-gray-100 rounded-full h-2">
-              <div class="bg-blue-500 rounded-full h-2 transition-all" [style.width.%]="(day.total / (data()!.total_ttc || 1)) * 100"></div>
+  <!-- ── PRODUITS EN ALERTE ────────────────────────────────────────── -->
+  @if (produitsAlerte().length > 0) {
+    <div class="bg-red-50 rounded-2xl border border-red-200 shadow-sm overflow-hidden">
+      <div class="px-6 py-4 border-b border-red-200 flex items-center gap-2">
+        <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+        <h2 class="text-base font-bold text-red-800">Produits en rupture / alerte</h2>
+      </div>
+      <div class="divide-y divide-red-100">
+        @for (p of produitsAlerte(); track p.produit_reference) {
+          <div class="flex items-center justify-between px-6 py-3">
+            <div>
+              <p class="text-sm font-semibold text-gray-900">{{ p.produit_nom }}</p>
+              <p class="text-xs text-gray-400 font-mono">{{ p.produit_reference }} · Dépôt {{ p.depot_code }}</p>
             </div>
-            <span class="text-xs font-medium text-gray-700 w-28 text-right">{{ formatPrice(day.total) }}</span>
+            <div class="text-right">
+              <p class="text-sm font-bold text-red-700">{{ p.quantite }}</p>
+              <p class="text-xs text-gray-400">seuil : {{ p.seuil }}</p>
+            </div>
           </div>
         }
       </div>
     </div>
   }
-}
 
-@if (!loading() && data() === null) {
-  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 text-center text-gray-400">
-    <svg class="w-12 h-12 mx-auto mb-3 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-    <p class="font-medium text-gray-500">Aucune donnée disponible</p>
-    <p class="text-sm mt-1">Les données s'afficheront une fois l'API connectée.</p>
-  </div>
+  <!-- État vide si aucune donnée -->
+  @if (totalVentes() === 0 && alertesStock() === 0 && soldeFinance() === 0) {
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 text-center text-gray-400">
+      <svg class="w-12 h-12 mx-auto mb-3 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+        <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+      </svg>
+      <p class="font-medium text-gray-500">Aucune donnée pour cette période</p>
+      <p class="text-sm mt-1">Les données s'afficheront dès que des ventes seront enregistrées.</p>
+    </div>
+  }
+
 }
