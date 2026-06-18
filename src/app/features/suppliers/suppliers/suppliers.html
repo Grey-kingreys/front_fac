@@ -1,78 +1,112 @@
+<!-- ============================================================
+     FOURNISSEURS — Formulaire avec champ Code obligatoire
+     BUG CORRIGÉ : ajout du champ Code (requis par le backend)
+     ============================================================ -->
+
 <div class="mb-6 flex items-start justify-between gap-4">
   <div>
     <h1 class="text-2xl font-bold text-gray-900">Fournisseurs</h1>
-    <p class="text-sm text-gray-500 mt-1">Gestion de vos fournisseurs</p>
+    <p class="text-sm text-gray-500 mt-1">{{ total() }} fournisseur{{ total() > 1 ? 's' : '' }}</p>
   </div>
   <button type="button" (click)="openCreate()"
     class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm">
-    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+    </svg>
     Nouveau fournisseur
   </button>
 </div>
 
+<!-- Barre de recherche -->
 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-4">
-  <div class="flex items-center gap-3">
-    <div class="relative flex-1">
-      <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.35-4.35"/></svg>
-      <input type="text" placeholder="Rechercher un fournisseur..." [(ngModel)]="search" (ngModelChange)="onSearchChange()"
-        class="w-full pl-9 pr-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"/>
-    </div>
-    <span class="text-sm text-gray-400">
-      @if (loading()) { Chargement... } @else { {{ total() }} fournisseur{{ total() > 1 ? 's' : '' }} }
-    </span>
+  <div class="relative max-w-sm">
+    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+      <circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.35-4.35"/>
+    </svg>
+    <input type="text" placeholder="Rechercher un fournisseur…" [(ngModel)]="search" (ngModelChange)="onSearchChange()"
+      class="w-full pl-9 pr-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"/>
   </div>
 </div>
 
+<!-- Tableau -->
 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+
   @if (loading()) {
-    <div class="flex items-center justify-center py-20 text-gray-400">
-      <svg class="w-6 h-6 animate-spin mr-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
-      Chargement...
+    <div class="flex items-center justify-center py-20 text-gray-400 gap-3">
+      <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+      </svg>
+      Chargement…
     </div>
-  } @else if (suppliers().length === 0) {
-    <div class="py-20 text-center text-gray-400">
-      <svg class="w-12 h-12 mx-auto mb-3 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14 18V6a2 2 0 00-2-2H4a2 2 0 00-2 2v11a1 1 0 001 1h2"/><path stroke-linecap="round" stroke-linejoin="round" d="M14 18h-2m5 0h-1"/><circle cx="7" cy="18" r="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M14 16h4a2 2 0 012 2v2"/><circle cx="17" cy="18" r="2"/></svg>
+  }
+
+  @if (!loading() && suppliers().length === 0) {
+    <div class="py-20 text-center">
       <p class="font-medium text-gray-500">Aucun fournisseur trouvé</p>
-      <p class="text-sm mt-1">{{ search ? 'Modifiez votre recherche.' : 'Ajoutez votre premier fournisseur.' }}</p>
+      <p class="text-sm text-gray-400 mt-1">{{ search ? 'Modifiez votre recherche.' : 'Ajoutez votre premier fournisseur.' }}</p>
     </div>
-  } @else {
+  }
+
+  @if (!loading() && suppliers().length > 0) {
     <table class="w-full text-sm">
       <thead>
         <tr class="border-b border-gray-100 bg-slate-50/60">
           <th class="text-left px-5 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Fournisseur</th>
-          <th class="text-left px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider hidden md:table-cell">Contact</th>
           <th class="text-left px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider hidden lg:table-cell">Email</th>
           <th class="text-left px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider hidden lg:table-cell">Téléphone</th>
-          <th class="text-left px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider hidden xl:table-cell">Conditions</th>
+          <th class="text-right px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider hidden xl:table-cell">Solde dette</th>
+          <th class="text-center px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider hidden md:table-cell">Statut</th>
           <th class="px-4 py-3 w-20"></th>
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-50">
         @for (supplier of suppliers(); track supplier.id) {
           <tr class="hover:bg-slate-50/50 transition-colors">
-            <td class="px-5 py-3">
+            <td class="px-5 py-3.5">
               <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-500 flex items-center justify-center text-white text-xs font-bold shrink-0">
-                  {{ supplier.name[0].toUpperCase() }}
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                  {{ supplier.nom[0]?.toUpperCase() }}
                 </div>
-                <p class="font-medium text-gray-900">{{ supplier.name }}</p>
+                <div>
+                  <p class="font-semibold text-gray-900">{{ supplier.nom }}</p>
+                  <p class="text-xs text-gray-400 font-mono">{{ supplier.code }}</p>
+                </div>
               </div>
             </td>
-            <td class="px-4 py-3 text-gray-600 hidden md:table-cell">{{ supplier.contact_name || '—' }}</td>
-            <td class="px-4 py-3 text-gray-600 hidden lg:table-cell">{{ supplier.email || '—' }}</td>
-            <td class="px-4 py-3 text-gray-600 hidden lg:table-cell">{{ supplier.phone || '—' }}</td>
-            <td class="px-4 py-3 hidden xl:table-cell">
-              <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
-                {{ getPaymentLabel(supplier.payment_terms) }}
-              </span>
+            <td class="px-4 py-3.5 text-gray-600 hidden lg:table-cell">{{ supplier.email || '—' }}</td>
+            <td class="px-4 py-3.5 text-gray-600 hidden lg:table-cell">{{ supplier.telephone || '—' }}</td>
+            <td class="px-4 py-3.5 text-right hidden xl:table-cell">
+              @if (supplier.solde_dette > 0) {
+                <span class="font-semibold text-red-600">{{ formatPrice(supplier.solde_dette) }}</span>
+              } @else {
+                <span class="text-gray-300">—</span>
+              }
             </td>
-            <td class="px-4 py-3">
+            <td class="px-4 py-3.5 text-center hidden md:table-cell">
+              @if (supplier.is_active) {
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-medium">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Actif
+                </span>
+              } @else {
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gray-100 text-gray-500 border border-gray-200 text-xs font-medium">
+                  <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>Inactif
+                </span>
+              }
+            </td>
+            <td class="px-4 py-3.5">
               <div class="flex items-center justify-end gap-1">
-                <button type="button" (click)="openEdit(supplier)" class="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                <button type="button" (click)="openEdit(supplier)"
+                  class="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                  </svg>
                 </button>
-                <button type="button" (click)="openDelete(supplier)" class="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                <button type="button" (click)="openDelete(supplier)"
+                  class="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                  </svg>
                 </button>
               </div>
             </td>
@@ -80,12 +114,13 @@
         }
       </tbody>
     </table>
+
     @if (totalPages() > 1) {
       <div class="flex items-center justify-between px-5 py-3 border-t border-gray-100 bg-slate-50/40">
-        <p class="text-sm text-gray-500">{{ pageStart() }}–{{ pageEnd() }} sur {{ total() }}</p>
-        <div class="flex items-center gap-2">
+        <p class="text-xs text-gray-500">{{ pageStart() }}–{{ pageEnd() }} sur <span class="font-semibold">{{ total() }}</span></p>
+        <div class="flex gap-1">
           <button type="button" (click)="prevPage()" [disabled]="!hasPrev()" class="px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-40">← Précédent</button>
-          <span class="text-sm text-gray-500">{{ page() }} / {{ totalPages() }}</span>
+          <span class="px-3 py-1.5 text-sm font-semibold text-gray-700">{{ page() }} / {{ totalPages() }}</span>
           <button type="button" (click)="nextPage()" [disabled]="!hasNext()" class="px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-40">Suivant →</button>
         </div>
       </div>
@@ -93,80 +128,132 @@
   }
 </div>
 
-<!-- SLIDE-OVER PANEL -->
+
+<!-- ============================================================
+     PANNEAU LATÉRAL — Création / Édition
+     ============================================================ -->
 @if (showPanel()) {
   <div class="fixed inset-0 bg-black/30 z-40 backdrop-blur-sm" (click)="closePanel()"></div>
   <div class="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-white shadow-2xl flex flex-col">
-    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-      <h2 class="text-lg font-semibold text-gray-900">{{ isEditing() ? 'Modifier le fournisseur' : 'Nouveau fournisseur' }}</h2>
-      <button type="button" (click)="closePanel()" class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+
+    <div class="flex items-center justify-between px-6 py-5 border-b border-gray-100 shrink-0">
+      <div>
+        <h2 class="text-lg font-bold text-gray-900">
+          {{ isEditing() ? 'Modifier le fournisseur' : 'Nouveau fournisseur' }}
+        </h2>
+        <p class="text-xs text-gray-500 mt-0.5">Les champs marqués * sont obligatoires</p>
+      </div>
+      <button type="button" (click)="closePanel()" class="p-2 rounded-xl text-gray-400 hover:bg-gray-100">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
       </button>
     </div>
+
     <div class="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+
+      <!-- ✅ CODE — CHAMP OBLIGATOIRE manquant avant -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1.5">Nom <span class="text-red-500">*</span></label>
-        <input type="text" [(ngModel)]="formData.name" placeholder="Ex: Diallo Trading"
-          class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"/>
+        <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+          Code fournisseur <span class="text-red-500">*</span>
+        </label>
+        <input type="text" [(ngModel)]="formData.code" placeholder="Ex: FRN-001"
+          [disabled]="isEditing()"
+          class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 disabled:bg-gray-50 disabled:text-gray-400"/>
+        @if (!isEditing()) {
+          <p class="text-xs text-gray-400 mt-1">Code unique par entreprise. Ex: FRN-001, DIALLO-01…</p>
+        }
       </div>
+
+      <!-- NOM -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1.5">Nom du contact</label>
-        <input type="text" [(ngModel)]="formData.contact_name" placeholder="Ex: Mamadou Diallo"
-          class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"/>
+        <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+          Nom du fournisseur <span class="text-red-500">*</span>
+        </label>
+        <input type="text" [(ngModel)]="formData.nom" placeholder="Ex: Diallo Trading"
+          class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"/>
       </div>
+
+      <!-- Email + Téléphone -->
       <div class="grid grid-cols-2 gap-3">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
+          <label class="block text-sm font-semibold text-gray-700 mb-1.5">Email</label>
           <input type="email" [(ngModel)]="formData.email" placeholder="contact@..."
-            class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"/>
+            class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"/>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1.5">Téléphone</label>
-          <input type="tel" [(ngModel)]="formData.phone" placeholder="+224..."
-            class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"/>
+          <label class="block text-sm font-semibold text-gray-700 mb-1.5">Téléphone</label>
+          <input type="tel" [(ngModel)]="formData.telephone" placeholder="+224..."
+            class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"/>
         </div>
       </div>
+
+      <!-- Adresse -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1.5">Adresse</label>
-        <input type="text" [(ngModel)]="formData.address" placeholder="Adresse complète"
-          class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"/>
+        <label class="block text-sm font-semibold text-gray-700 mb-1.5">Adresse</label>
+        <input type="text" [(ngModel)]="formData.adresse" placeholder="Adresse complète"
+          class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"/>
       </div>
+
+      <!-- Notes -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1.5">Conditions de paiement</label>
-        <select [(ngModel)]="formData.payment_terms" class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400">
-          @for (t of paymentTerms; track t.value) { <option [value]="t.value">{{ t.label }}</option> }
-        </select>
+        <label class="block text-sm font-semibold text-gray-700 mb-1.5">Notes internes</label>
+        <textarea [(ngModel)]="formData.notes" rows="3" placeholder="Informations utiles…"
+          class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"></textarea>
       </div>
+
     </div>
-    <div class="px-6 py-4 border-t border-gray-100 flex gap-3">
-      <button type="button" (click)="closePanel()" class="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50">Annuler</button>
+
+    <div class="px-6 py-4 border-t border-gray-100 flex gap-3 shrink-0">
+      <button type="button" (click)="closePanel()"
+        class="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-100">
+        Annuler
+      </button>
       <button type="button" (click)="save()" [disabled]="!canSave() || panelLoading()"
-        class="flex-1 px-4 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2">
-        @if (panelLoading()) { <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg> }
-        {{ isEditing() ? 'Enregistrer' : 'Créer' }}
+        class="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-semibold flex items-center justify-center gap-2">
+        @if (panelLoading()) {
+          <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+          </svg>
+        }
+        {{ isEditing() ? 'Enregistrer' : 'Créer le fournisseur' }}
       </button>
     </div>
   </div>
 }
 
+
 <!-- MODALE SUPPRESSION -->
-@if (deleteTarget() !== null) {
+@if (deleteTarget()) {
   <div class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
-      <div class="flex items-start gap-4">
+      <div class="flex items-start gap-4 mb-5">
         <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center shrink-0">
-          <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+          </svg>
         </div>
         <div>
-          <h3 class="font-semibold text-gray-900">Supprimer ce fournisseur ?</h3>
-          <p class="text-sm text-gray-500 mt-1"><strong>{{ deleteTarget()!.name }}</strong> sera supprimé définitivement.</p>
+          <h3 class="font-bold text-gray-900 mb-1">Supprimer ce fournisseur ?</h3>
+          <p class="text-sm text-gray-500">
+            <span class="font-semibold">{{ deleteTarget()!.nom }}</span> ({{ deleteTarget()!.code }}) sera supprimé définitivement.
+          </p>
         </div>
       </div>
-      <div class="flex gap-3 mt-6">
-        <button type="button" (click)="closeDelete()" class="flex-1 px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50">Annuler</button>
+      <div class="flex gap-3">
+        <button type="button" (click)="closeDelete()"
+          class="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+          Annuler
+        </button>
         <button type="button" (click)="executeDelete()" [disabled]="deleteLoading()"
-          class="flex-1 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-medium disabled:opacity-50 flex items-center justify-center gap-2">
-          @if (deleteLoading()) { <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg> }
+          class="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-sm font-semibold flex items-center justify-center gap-2">
+          @if (deleteLoading()) {
+            <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+            </svg>
+          }
           Supprimer
         </button>
       </div>
