@@ -2,7 +2,7 @@
 // LOGISTICS COMPONENT — Version finale corrigée
 // Chemin : src/app/features/logistics/logistics/logistics.ts
 // ============================================================
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, AfterViewChecked, ElementRef, ViewChild, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -19,7 +19,7 @@ import { ToastService } from '../../../core/services/toast';
   imports: [CommonModule, FormsModule],
   templateUrl: './logistics.html',
 })
-export class Logistics implements OnInit {
+export class Logistics implements OnInit, AfterViewChecked {
   private svc   = inject(LogisticsService);
   private toast = inject(ToastService);
 
@@ -177,16 +177,148 @@ export class Logistics implements OnInit {
     });
   }
 
-  // ── Avancer le statut ─────────────────────────────────────────────────────
+  // Référence au <canvas #signatureCanvas> du panneau d'arrivée. Le panneau
+  // est rendu conditionnellement (@if), donc le canvas n'existe dans le DOM
+  // que pendant que showArriveePanel() est vrai — on le bind une seule fois
+  // dès qu'il apparaît, via ngAfterViewChecked (plus fiable qu'un effect ici
+  // car l'élément natif change de référence à chaque ouverture du panneau).
+  @ViewChild('signatureCanvas') signatureCanvasRef?: ElementRef<HTMLCanvasElement>;
+  private boundCanvas: HTMLCanvasElement | null = null;
+
+  ngAfterViewChecked(): void {
+    const el = this.signatureCanvasRef?.nativeElement;
+    if (el && el !== this.boundCanvas) {
+      this.boundCanvas = el;
+      this.bindSignatureCanvas(el);
+    }
+    if (!el) {
+      this.boundCanvas = null;
+    }
+  }
+
+  // ── Avancer le statut — une action dédiée par étape (CDC §3.7/3.8) ──────
+  // planifiee → chargement → en_transit → arrivee → terminee
+  // L'étape "arrivee" exige une signature HTML5 (obligatoire CDC §10) avant
+  // de pouvoir confirmer — voir openArriveePanel().
 
   advanceMission(mission: Mission): void {
-    const next = this.getNextStatus(mission.statut);
-    if (!next) return;
-    this.svc.updateMissionStatus(mission.id, next).subscribe({
-      next: () => { this.toast.success('Statut mis à jour.'); this.loadMissions(); },
-      error: () => this.toast.error('Erreur.'),
+    switch (mission.statut) {
+      case 'planifiee':
+        this.svc.demarrerChargement(mission.id).subscribe({
+          next: () => { this.toast.success('Chargement démarré.'); this.loadMissions(); },
+          error: (e) => this.toast.error(this.extractError(e, 'Erreur.')),
+        });
+        break;
+      case 'chargement':
+        this.svc.demarrerTransit(mission.id).subscribe({
+          next: () => { this.toast.success('Mission en transit.'); this.loadMissions(); },
+          error: (e) => this.toast.error(this.extractError(e, 'Erreur.')),
+        });
+        break;
+      case 'en_transit':
+        this.openArriveePanel(mission);
+        break;
+      case 'arrivee':
+        this.svc.terminerMission(mission.id).subscribe({
+          next: () => { this.toast.success('Mission terminée.'); this.loadMissions(); },
+          error: (e) => this.toast.error(this.extractError(e, 'Erreur.')),
+        });
+        break;
+    }
+  }
+
+  // ── Signature à l'arrivée (HTML5 canvas) — obligatoire CDC §10 ──────────
+
+  showArriveePanel = signal(false);
+  arriveeTarget = signal<Mission | null>(null);
+  private isDrawingSignature = false;
+  hasSignature = signal(false);
+
+  openArriveePanel(mission: Mission): void {
+    this.arriveeTarget.set(mission);
+    this.hasSignature.set(false);
+    this.showArriveePanel.set(true);
+  }
+  closeArriveePanel(): void { this.showArriveePanel.set(false); this.arriveeTarget.set(null); this.boundCanvas = null; }
+
+  // Appelé automatiquement par ngAfterViewChecked() dès que le <canvas> apparaît dans le DOM
+  private bindSignatureCanvas(canvas: HTMLCanvasElement): void {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.strokeStyle = '#1e3a8a';
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+
+    const getPos = (e: MouseEvent | TouchEvent): { x: number; y: number } => {
+      const rect = canvas.getBoundingClientRect();
+      const point = 'touches' in e ? e.touches[0] : e;
+      return { x: point.clientX - rect.left, y: point.clientY - rect.top };
+    };
+    const start = (e: MouseEvent | TouchEvent) => { this.isDrawingSignature = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); };
+    const move = (e: MouseEvent | TouchEvent) => {
+      if (!this.isDrawingSignature) return;
+      e.preventDefault();
+      const p = getPos(e);
+      ctx.lineTo(p.x, p.y); ctx.stroke();
+      this.hasSignature.set(true);
+    };
+    const end = () => { this.isDrawingSignature = false; };
+
+    canvas.addEventListener('mousedown', start);
+    canvas.addEventListener('mousemove', move);
+    canvas.addEventListener('mouseup', end);
+    canvas.addEventListener('mouseleave', end);
+    canvas.addEventListener('touchstart', start, { passive: true });
+    canvas.addEventListener('touchmove', move, { passive: false });
+    canvas.addEventListener('touchend', end);
+  }
+
+  clearSignature(): void {
+    if (!this.boundCanvas) return;
+    const ctx = this.boundCanvas.getContext('2d');
+    ctx?.clearRect(0, 0, this.boundCanvas.width, this.boundCanvas.height);
+    this.hasSignature.set(false);
+  }
+
+  confirmArrivee(): void {
+    const mission = this.arriveeTarget();
+    if (!mission) return;
+    if (!this.hasSignature() || !this.boundCanvas) {
+      this.toast.error('La signature de réception est obligatoire.');
+      return;
+    }
+    const signatureBase64 = this.boundCanvas.toDataURL('image/png');
+    this.svc.declarerArrivee(mission.id, signatureBase64).subscribe({
+      next: () => { this.toast.success('Arrivée confirmée — signature enregistrée.'); this.closeArriveePanel(); this.loadMissions(); },
+      error: (e) => this.toast.error(this.extractError(e, 'Erreur lors de la confirmation.')),
     });
   }
+
+  annulerMission(mission: Mission): void {
+    this.svc.annulerMission(mission.id).subscribe({
+      next: () => { this.toast.success('Mission annulée.'); this.loadMissions(); },
+      error: (e) => this.toast.error(this.extractError(e, 'Erreur.')),
+    });
+  }
+
+  // ── QR Code de la mission (scan pour démarrer le chargement) ────────────
+
+  showQrPanel = signal(false);
+  qrTarget = signal<Mission | null>(null);
+  qrImageBase64 = signal<string | null>(null);
+  qrLoading = signal(false);
+
+  openQrPanel(mission: Mission): void {
+    this.qrTarget.set(mission);
+    this.qrImageBase64.set(null);
+    this.showQrPanel.set(true);
+    this.qrLoading.set(true);
+    this.svc.getMissionQr(mission.id).subscribe({
+      next: (r) => { this.qrImageBase64.set(r.qr_code_base64); this.qrLoading.set(false); },
+      error: () => { this.toast.error('Erreur lors de la génération du QR code.'); this.qrLoading.set(false); },
+    });
+  }
+  closeQrPanel(): void { this.showQrPanel.set(false); this.qrTarget.set(null); }
 
   // ── Véhicules ─────────────────────────────────────────────────────────────
 
@@ -240,12 +372,12 @@ export class Logistics implements OnInit {
   // ── Labels / classes ──────────────────────────────────────────────────────
 
   getStatusLabel(s: string): string {
-    const m: Record<string, string> = { planifiee: 'Planifiée', chargement: 'Chargement', en_transit: 'En transit', arrivee: 'Arrivée', litige: 'Litige', terminee: 'Terminée' };
+    const m: Record<string, string> = { planifiee: 'Planifiée', chargement: 'Chargement', en_transit: 'En transit', arrivee: 'Arrivée', litige: 'Litige', terminee: 'Terminée', annulee: 'Annulée' };
     return m[s] || s;
   }
 
   getStatusClass(s: string): string {
-    const m: Record<string, string> = { planifiee: 'bg-blue-50 text-blue-700 border-blue-200', chargement: 'bg-amber-50 text-amber-700 border-amber-200', en_transit: 'bg-purple-50 text-purple-700 border-purple-200', arrivee: 'bg-teal-50 text-teal-700 border-teal-200', terminee: 'bg-emerald-50 text-emerald-700 border-emerald-200', litige: 'bg-red-50 text-red-700 border-red-200' };
+    const m: Record<string, string> = { planifiee: 'bg-blue-50 text-blue-700 border-blue-200', chargement: 'bg-amber-50 text-amber-700 border-amber-200', en_transit: 'bg-purple-50 text-purple-700 border-purple-200', arrivee: 'bg-teal-50 text-teal-700 border-teal-200', terminee: 'bg-emerald-50 text-emerald-700 border-emerald-200', litige: 'bg-red-50 text-red-700 border-red-200', annulee: 'bg-gray-100 text-gray-500 border-gray-200' };
     return m[s] || 'bg-gray-100 text-gray-600 border-gray-200';
   }
 

@@ -30,6 +30,32 @@
   </div>
 </div>
 
+<!-- Onglets -->
+<div class="flex gap-1 mb-5 bg-slate-100 p-1 rounded-xl w-fit">
+  <button type="button" (click)="setTab('stocks')"
+    class="px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+    [class]="activeTab() === 'stocks' ? 'bg-white text-blue-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'">
+    Stock &amp; mouvements
+  </button>
+  <button type="button" (click)="setTab('transferts')"
+    class="px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+    [class]="activeTab() === 'transferts' ? 'bg-white text-blue-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'">
+    Transferts
+  </button>
+  <button type="button" (click)="setTab('inventaires')"
+    class="px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+    [class]="activeTab() === 'inventaires' ? 'bg-white text-blue-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'">
+    Inventaires
+  </button>
+  <button type="button" (click)="setTab('ajustements')"
+    class="px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+    [class]="activeTab() === 'ajustements' ? 'bg-white text-blue-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'">
+    Ajustements
+  </button>
+</div>
+
+@if (activeTab() === 'stocks') {
+
 <!-- Filtres -->
 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-4">
   <div class="flex flex-wrap gap-3 items-center">
@@ -195,6 +221,201 @@
     </div>
   }
 </div>
+} <!-- fin @if activeTab() === 'stocks' -->
+
+<!-- ════════════════════════════════════════════════════════════════════
+     ONGLET TRANSFERTS INTER-DÉPÔTS — CDC §3.3
+     ════════════════════════════════════════════════════════════════════ -->
+@if (activeTab() === 'transferts') {
+  <div class="mb-4 flex justify-end">
+    <button type="button" (click)="openTransfertForm()"
+      class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors flex items-center gap-2">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+      Nouveau transfert
+    </button>
+  </div>
+
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+    @if (transfertsLoading()) {
+      <div class="flex items-center justify-center py-20 text-gray-400 gap-2">
+        <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+        Chargement…
+      </div>
+    } @else if (transferts().length === 0) {
+      <div class="py-20 text-center text-gray-400">
+        <p class="font-medium text-gray-500">Aucun transfert</p>
+        <p class="text-sm mt-1">Créez une demande de transfert entre dépôts.</p>
+      </div>
+    } @else {
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-gray-100 bg-slate-50/60">
+            <th class="text-left px-5 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">N°</th>
+            <th class="text-left px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Source → Destination</th>
+            <th class="text-center px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Statut</th>
+            <th class="text-left px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider hidden lg:table-cell">Créé le</th>
+            <th class="px-4 py-3 w-56"></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+          @for (t of transferts(); track t.id) {
+            <tr class="hover:bg-slate-50/50 transition-colors">
+              <td class="px-5 py-3 font-mono text-xs text-gray-500">{{ t.numero }}</td>
+              <td class="px-4 py-3">
+                <span class="font-medium text-gray-900">{{ t.depot_source_nom }}</span>
+                <span class="text-gray-400 mx-1">→</span>
+                <span class="font-medium text-gray-900">{{ t.depot_destination_nom }}</span>
+              </td>
+              <td class="px-4 py-3 text-center">
+                <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-medium border" [class]="transfertStatusClass(t.statut)">
+                  {{ transfertStatusLabel(t.statut) }}
+                </span>
+              </td>
+              <td class="px-4 py-3 text-gray-400 text-xs hidden lg:table-cell">{{ t.created_at | date:'dd/MM/yy HH:mm' }}</td>
+              <td class="px-4 py-3">
+                <div class="flex items-center justify-end gap-2">
+                  @if (t.statut === 'demande') {
+                    <button type="button" (click)="expedierTransfert(t)"
+                      class="px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold transition-colors">Expédier</button>
+                    <button type="button" (click)="annulerTransfert(t)"
+                      class="px-3 py-1.5 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-500 text-xs font-semibold transition-colors">Annuler</button>
+                  }
+                  @if (t.statut === 'en_transit') {
+                    <button type="button" (click)="openReception(t)"
+                      class="px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold transition-colors">Réceptionner</button>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+}
+
+<!-- ════════════════════════════════════════════════════════════════════
+     ONGLET INVENTAIRES PHYSIQUES — CDC §3.3
+     ════════════════════════════════════════════════════════════════════ -->
+@if (activeTab() === 'inventaires') {
+  <div class="mb-4 flex justify-end">
+    <button type="button" (click)="openInventaireForm()"
+      class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors flex items-center gap-2">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+      Nouvel inventaire
+    </button>
+  </div>
+
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+    @if (inventairesLoading()) {
+      <div class="flex items-center justify-center py-20 text-gray-400 gap-2">
+        <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+        Chargement…
+      </div>
+    } @else if (inventaires().length === 0) {
+      <div class="py-20 text-center text-gray-400">
+        <p class="font-medium text-gray-500">Aucun inventaire</p>
+        <p class="text-sm mt-1">Lancez un inventaire physique périodique pour un dépôt.</p>
+      </div>
+    } @else {
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-gray-100 bg-slate-50/60">
+            <th class="text-left px-5 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">N°</th>
+            <th class="text-left px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Dépôt</th>
+            <th class="text-center px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Statut</th>
+            <th class="text-left px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider hidden lg:table-cell">Créé par</th>
+            <th class="px-4 py-3 w-32"></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+          @for (inv of inventaires(); track inv.id) {
+            <tr class="hover:bg-slate-50/50 transition-colors cursor-pointer" (click)="openInventaireDetail(inv)">
+              <td class="px-5 py-3 font-mono text-xs text-gray-500">{{ inv.numero }}</td>
+              <td class="px-4 py-3 font-medium text-gray-900">{{ inv.depot_nom }}</td>
+              <td class="px-4 py-3 text-center">
+                <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-medium border" [class]="inventaireStatusClass(inv.statut)">
+                  {{ inventaireStatusLabel(inv.statut) }}
+                </span>
+              </td>
+              <td class="px-4 py-3 text-gray-400 text-xs hidden lg:table-cell">{{ inv.cree_par_nom }}</td>
+              <td class="px-4 py-3 text-right">
+                <span class="text-xs text-blue-600 font-semibold">Voir →</span>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+}
+
+<!-- ════════════════════════════════════════════════════════════════════
+     ONGLET AJUSTEMENTS DE STOCK — CDC §3.3 (motif obligatoire + validation)
+     ════════════════════════════════════════════════════════════════════ -->
+@if (activeTab() === 'ajustements') {
+  <div class="mb-4 flex justify-end">
+    <button type="button" (click)="openAjustementForm()"
+      class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors flex items-center gap-2">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+      Nouvel ajustement
+    </button>
+  </div>
+
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+    @if (ajustementsLoading()) {
+      <div class="flex items-center justify-center py-20 text-gray-400 gap-2">
+        <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+        Chargement…
+      </div>
+    } @else if (ajustements().length === 0) {
+      <div class="py-20 text-center text-gray-400">
+        <p class="font-medium text-gray-500">Aucun ajustement</p>
+        <p class="text-sm mt-1">Toute correction manuelle de stock nécessite un motif et une validation.</p>
+      </div>
+    } @else {
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-gray-100 bg-slate-50/60">
+            <th class="text-left px-5 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Produit</th>
+            <th class="text-left px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider hidden md:table-cell">Dépôt</th>
+            <th class="text-right px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Quantité</th>
+            <th class="text-left px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider hidden lg:table-cell">Motif</th>
+            <th class="text-center px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Statut</th>
+            <th class="px-4 py-3 w-44"></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+          @for (a of ajustements(); track a.id) {
+            <tr class="hover:bg-slate-50/50 transition-colors">
+              <td class="px-5 py-3 font-medium text-gray-900">{{ a.produit_nom }}</td>
+              <td class="px-4 py-3 text-gray-500 hidden md:table-cell">{{ a.depot_nom }}</td>
+              <td class="px-4 py-3 text-right font-bold tabular-nums" [class]="a.quantite >= 0 ? 'text-emerald-600' : 'text-red-600'">
+                {{ a.quantite >= 0 ? '+' : '' }}{{ a.quantite }}
+              </td>
+              <td class="px-4 py-3 text-gray-500 text-xs hidden lg:table-cell max-w-xs truncate">{{ a.motif }}</td>
+              <td class="px-4 py-3 text-center">
+                <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-medium border" [class]="ajustementStatusClass(a.statut)">
+                  {{ ajustementStatusLabel(a.statut) }}
+                </span>
+              </td>
+              <td class="px-4 py-3">
+                @if (a.statut === 'en_attente') {
+                  <div class="flex items-center justify-end gap-2">
+                    <button type="button" (click)="approuverAjustement(a)"
+                      class="px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold transition-colors">Approuver</button>
+                    <button type="button" (click)="refuserAjustement(a)"
+                      class="px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 text-xs font-semibold transition-colors">Refuser</button>
+                  </div>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+}
 
 <!-- ============================================================
      PANNEAU — Enregistrer un mouvement de stock
@@ -287,6 +508,242 @@
         }
         Enregistrer
       </button>
+    </div>
+  </div>
+}
+
+<!-- ════════════════════════════════════════════════════════════════════
+     PANNEAU — Nouveau transfert inter-dépôts
+     ════════════════════════════════════════════════════════════════════ -->
+@if (showTransfertForm()) {
+  <div class="fixed inset-0 bg-black/40 z-40 backdrop-blur-sm" (click)="closeTransfertForm()"></div>
+  <div class="fixed top-0 right-0 h-full w-full max-w-lg bg-white z-50 flex flex-col shadow-2xl">
+    <div class="flex items-center justify-between px-6 py-5 border-b border-gray-100 shrink-0">
+      <h2 class="text-lg font-bold text-gray-900">Nouveau transfert</h2>
+      <button type="button" (click)="closeTransfertForm()" class="p-2 rounded-xl text-gray-400 hover:bg-gray-100 transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1.5">Dépôt source</label>
+          <select [(ngModel)]="transfertForm.depot_source"
+            class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400">
+            <option [ngValue]="0">— Choisir —</option>
+            @for (d of depots(); track d.id) { <option [ngValue]="d.id">{{ d.name }}</option> }
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1.5">Dépôt destination</label>
+          <select [(ngModel)]="transfertForm.depot_destination"
+            class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400">
+            <option [ngValue]="0">— Choisir —</option>
+            @for (d of depots(); track d.id) { <option [ngValue]="d.id">{{ d.name }}</option> }
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <label class="text-sm font-semibold text-gray-700">Produits à transférer</label>
+          <button type="button" (click)="addLigneTransfert()" class="text-xs font-semibold text-blue-600 hover:text-blue-700">+ Ajouter une ligne</button>
+        </div>
+        <div class="space-y-2">
+          @for (l of transfertForm.lignes; track $index) {
+            <div class="flex gap-2 items-center">
+              <select [(ngModel)]="l.produit"
+                class="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400">
+                <option [ngValue]="0">— Produit —</option>
+                @for (p of products(); track p.id) { <option [ngValue]="p.id">{{ p.name }}</option> }
+              </select>
+              <input type="number" [(ngModel)]="l.quantite_envoyee" min="1" placeholder="Qté"
+                class="w-24 px-3 py-2 rounded-lg border border-gray-200 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"/>
+              <button type="button" (click)="removeLigneTransfert($index)" class="p-2 text-gray-400 hover:text-red-600 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/50 shrink-0 flex gap-3">
+      <button type="button" (click)="closeTransfertForm()" class="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors">Annuler</button>
+      <button type="button" (click)="saveTransfert()" class="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors">Créer la demande</button>
+    </div>
+  </div>
+}
+
+<!-- ════════════════════════════════════════════════════════════════════
+     PANNEAU — Réception d'un transfert
+     ════════════════════════════════════════════════════════════════════ -->
+@if (showReception()) {
+  <div class="fixed inset-0 bg-black/40 z-40 backdrop-blur-sm" (click)="closeReception()"></div>
+  <div class="fixed top-0 right-0 h-full w-full max-w-lg bg-white z-50 flex flex-col shadow-2xl">
+    <div class="flex items-center justify-between px-6 py-5 border-b border-gray-100 shrink-0">
+      <div>
+        <h2 class="text-lg font-bold text-gray-900">Réceptionner le transfert</h2>
+        <p class="text-xs text-gray-500 mt-0.5 font-mono">{{ receptionTarget()?.numero }}</p>
+      </div>
+      <button type="button" (click)="closeReception()" class="p-2 rounded-xl text-gray-400 hover:bg-gray-100 transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto px-6 py-5 space-y-3">
+      <p class="text-xs text-gray-500">Ajustez la quantité reçue si elle diffère de la quantité envoyée (casse, perte).</p>
+      @for (l of receptionLignes; track l.ligne_id) {
+        <div class="flex items-center justify-between gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
+          <div>
+            <p class="text-sm font-semibold text-gray-900">{{ l.produit_nom }}</p>
+            <p class="text-xs text-gray-400">Envoyé : {{ l.quantite_envoyee }}</p>
+          </div>
+          <input type="number" [(ngModel)]="l.quantite_recue" min="0"
+            class="w-24 px-3 py-2 rounded-lg border border-gray-200 text-sm font-mono text-right focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"/>
+        </div>
+      }
+    </div>
+
+    <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/50 shrink-0 flex gap-3">
+      <button type="button" (click)="closeReception()" class="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors">Annuler</button>
+      <button type="button" (click)="confirmReception()" class="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition-colors">Confirmer la réception</button>
+    </div>
+  </div>
+}
+
+<!-- ════════════════════════════════════════════════════════════════════
+     PANNEAU — Nouvel inventaire
+     ════════════════════════════════════════════════════════════════════ -->
+@if (showInventaireForm()) {
+  <div class="fixed inset-0 bg-black/40 z-40 backdrop-blur-sm flex items-center justify-center p-4" (click)="closeInventaireForm()">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md" (click)="$event.stopPropagation()">
+      <div class="px-6 py-5 border-b border-gray-100">
+        <h2 class="text-lg font-bold text-gray-900">Nouvel inventaire physique</h2>
+      </div>
+      <div class="px-6 py-5">
+        <label class="block text-sm font-semibold text-gray-700 mb-1.5">Dépôt à inventorier</label>
+        <select [(ngModel)]="inventaireDepotId"
+          class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400">
+          <option [ngValue]="0">— Choisir —</option>
+          @for (d of depots(); track d.id) { <option [ngValue]="d.id">{{ d.name }}</option> }
+        </select>
+        <p class="text-xs text-gray-400 mt-2">Les lignes seront pré-remplies avec le stock théorique actuel du dépôt.</p>
+      </div>
+      <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex gap-3">
+        <button type="button" (click)="closeInventaireForm()" class="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors">Annuler</button>
+        <button type="button" (click)="createInventaire()" class="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors">Créer</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ════════════════════════════════════════════════════════════════════
+     PANNEAU — Détail / saisie d'un inventaire
+     ════════════════════════════════════════════════════════════════════ -->
+@if (showInventaireDetail() && inventaireDetail(); as inv) {
+  <div class="fixed inset-0 bg-black/40 z-40 backdrop-blur-sm" (click)="closeInventaireDetail()"></div>
+  <div class="fixed top-0 right-0 h-full w-full max-w-xl bg-white z-50 flex flex-col shadow-2xl">
+    <div class="flex items-center justify-between px-6 py-5 border-b border-gray-100 shrink-0">
+      <div>
+        <h2 class="text-lg font-bold text-gray-900">{{ inv.numero }}</h2>
+        <p class="text-xs text-gray-500 mt-0.5">{{ inv.depot_nom }} · {{ inventaireStatusLabel(inv.statut) }}</p>
+      </div>
+      <button type="button" (click)="closeInventaireDetail()" class="p-2 rounded-xl text-gray-400 hover:bg-gray-100 transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto px-6 py-5">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-gray-100">
+            <th class="text-left py-2 font-semibold text-gray-500 text-xs uppercase">Produit</th>
+            <th class="text-right py-2 font-semibold text-gray-500 text-xs uppercase">Théorique</th>
+            <th class="text-right py-2 font-semibold text-gray-500 text-xs uppercase">Compté</th>
+            <th class="text-right py-2 font-semibold text-gray-500 text-xs uppercase">Écart</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+          @for (l of inv.lignes; track l.id) {
+            <tr>
+              <td class="py-2.5 font-medium text-gray-900">{{ l.produit_nom }}</td>
+              <td class="py-2.5 text-right text-gray-500 tabular-nums">{{ l.quantite_theorique }}</td>
+              <td class="py-2.5 text-right">
+                @if (inv.statut === 'en_cours') {
+                  <input type="number" [ngModel]="l.quantite_comptee" min="0"
+                    (change)="saveLigneComptee(inv.id, l.id, $any($event.target).valueAsNumber)"
+                    class="w-20 px-2 py-1 rounded-lg border border-gray-200 text-sm font-mono text-right focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"/>
+                } @else {
+                  <span class="tabular-nums">{{ l.quantite_comptee ?? '—' }}</span>
+                }
+              </td>
+              <td class="py-2.5 text-right tabular-nums font-semibold"
+                [class]="(l.ecart ?? 0) === 0 ? 'text-gray-400' : (l.ecart ?? 0) > 0 ? 'text-emerald-600' : 'text-red-600'">
+                {{ l.ecart != null ? (l.ecart > 0 ? '+' + l.ecart : l.ecart) : '—' }}
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (inv.statut === 'en_cours') {
+      <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/50 shrink-0">
+        <button type="button" (click)="validerInventaire(inv)"
+          class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition-colors">
+          Valider l'inventaire — appliquer les écarts au stock
+        </button>
+      </div>
+    }
+  </div>
+}
+
+<!-- ════════════════════════════════════════════════════════════════════
+     PANNEAU — Nouvel ajustement de stock
+     ════════════════════════════════════════════════════════════════════ -->
+@if (showAjustementForm()) {
+  <div class="fixed inset-0 bg-black/40 z-40 backdrop-blur-sm flex items-center justify-center p-4" (click)="closeAjustementForm()">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md" (click)="$event.stopPropagation()">
+      <div class="px-6 py-5 border-b border-gray-100">
+        <h2 class="text-lg font-bold text-gray-900">Nouvel ajustement</h2>
+        <p class="text-xs text-gray-500 mt-1">Toute correction manuelle nécessite un motif et sera soumise à validation.</p>
+      </div>
+      <div class="px-6 py-5 space-y-4">
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1.5">Dépôt</label>
+          <select [(ngModel)]="ajustementForm.depot"
+            class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400">
+            <option [ngValue]="0">— Choisir —</option>
+            @for (d of depots(); track d.id) { <option [ngValue]="d.id">{{ d.name }}</option> }
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1.5">Produit</label>
+          <select [(ngModel)]="ajustementForm.produit"
+            class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400">
+            <option [ngValue]="0">— Choisir —</option>
+            @for (p of products(); track p.id) { <option [ngValue]="p.id">{{ p.name }}</option> }
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+            Quantité <span class="text-gray-400 font-normal">(positif = ajout, négatif = retrait)</span>
+          </label>
+          <input type="number" [(ngModel)]="ajustementForm.quantite" placeholder="Ex: -5 ou +10"
+            class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"/>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1.5">Motif <span class="text-red-500">*</span></label>
+          <textarea [(ngModel)]="ajustementForm.motif" rows="3" placeholder="Ex: Produit endommagé, erreur de saisie initiale…"
+            class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"></textarea>
+        </div>
+      </div>
+      <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex gap-3">
+        <button type="button" (click)="closeAjustementForm()" class="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors">Annuler</button>
+        <button type="button" (click)="saveAjustement()" class="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors">Soumettre</button>
+      </div>
     </div>
   </div>
 }
