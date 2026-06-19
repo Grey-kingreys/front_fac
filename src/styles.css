@@ -1,4 +1,14 @@
+@import "leaflet/dist/leaflet.css";
 @import "tailwindcss";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Impression de rapports (CDC §4.1) — masque la navigation de l'app pour
+   n'imprimer que le contenu du rapport ouvert dans la zone principale. */
+@media print {
+  app-sidebar,
+  app-authenticated-topbar {
+    display: none !important;
+  }
+}

@@ -287,6 +287,7 @@ export class Hr implements OnInit {
   }
 
   rejectLeave(id: number): void {
+    // ⚠️ Le backend expose /conges/{id}/refuser/ (et non /rejeter/) — voir back_fac/apps/rh/urls.py
     this.http.post(`${this.BASE_CONGES}/${id}/refuser/`, {}).subscribe({
       next: () => { this.toast.success('Congé refusé.'); this.loadLeaves(); },
       error: (e) => this.toast.error(this.extractError(e, 'Erreur.')),
