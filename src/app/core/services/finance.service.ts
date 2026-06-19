@@ -11,6 +11,7 @@
 //   - Méthode listCaisses() → GET /api/caisses/
 //   - Méthode listDepenses() → GET /api/depenses/
 //   - Interface Depense pour afficher les dépenses
+//   - Consolidation 4 niveaux + versements inter-niveaux (CDC §3.6)
 // ============================================================
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -88,6 +89,57 @@ export interface DepensePayload {
   caisse: number;
 }
 
+// ════════════════════════════════════════════════════════════════════
+// HIÉRARCHIE DES CAISSES 4 NIVEAUX — CDC §3.6
+// Caisse Entreprise (permanente) → Caisse Zone → Caisse Dépôt → Session Caissier
+// Chaque niveau consolide les fonds du niveau inférieur via un versement.
+// ════════════════════════════════════════════════════════════════════
+
+export interface CaisseZone {
+  id: number;
+  nom: string;
+  zone: number;
+  zone_nom: string;
+  devise: string;
+  solde_actuel: number;
+}
+
+export interface CaisseEntreprise {
+  id: number;
+  nom: string;
+  devise: string;
+  solde_actuel: number;
+}
+
+export interface Consolidation {
+  caisse_entreprise: CaisseEntreprise | null;
+  caisses_zone: CaisseZone[];
+  caisses_depot: CaissePhysique[];
+}
+
+export type TypeVersement = 'depot_vers_zone' | 'zone_vers_entreprise';
+
+export interface VersementPayload {
+  type_versement: TypeVersement;
+  caisse_source: number;   // ID CaissePhysique (si depot_vers_zone) ou CaisseZone (si zone_vers_entreprise)
+  caisse_destination: number;
+  montant: number;
+  justificatif?: string;
+  montant_comptage_receveur: number; // double comptage obligatoire — doit être saisi par le receveur
+  motif_ecart?: string;              // obligatoire si montant_comptage_receveur != montant
+}
+
+export interface Versement {
+  id: number;
+  type_versement: TypeVersement;
+  montant: number;
+  montant_comptage_receveur: number;
+  ecart: number;
+  justificatif: string;
+  motif_ecart: string | null;
+  created_at: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class FinanceService {
   private http = inject(HttpClient);
@@ -150,4 +202,27 @@ export class FinanceService {
   createDepense(data: DepensePayload): Observable<Depense> {
     return this.http.post<Depense>(`${this.BASE}/depenses/`, data);
   }
-}
+
+  // ── Consolidation des 4 niveaux ──────────────────────────────────────────
+  // GET /api/caisses/consolidation/ — soldes agrégés à tous les niveaux
+
+  getConsolidation(): Observable<Consolidation> {
+    return this.http.get<Consolidation>(`${this.BASE}/caisses/consolidation/`);
+  }
+
+  listCaissesZone(): Observable<{ count: number; results: CaisseZone[] }> {
+    return this.http.get<{ count: number; results: CaisseZone[] }>(`${this.BASE}/caisses-zone/?page_size=100`);
+  }
+
+  getCaisseEntreprise(): Observable<CaisseEntreprise> {
+    return this.http.get<CaisseEntreprise>(`${this.BASE}/caisse-entreprise/`);
+  }
+
+  // ── Versements inter-niveaux (dépôt→zone, zone→entreprise) ──────────────
+  // Double comptage obligatoire : le receveur saisit le montant qu'il compte
+  // réellement reçu — un écart avec le montant envoyé exige un motif.
+
+  createVersement(data: VersementPayload): Observable<Versement> {
+    return this.http.post<Versement>(`${this.BASE}/versements-caisse/`, data);
+  }
+} 

@@ -168,14 +168,28 @@
                 </span>
               </td>
 
-              <!-- Action avancer statut -->
+              <!-- Actions -->
               <td class="px-4 py-3.5">
-                @if (getNextStatus(mission.statut)) {
-                  <button type="button" (click)="advanceMission(mission)"
-                    class="px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold transition-colors whitespace-nowrap">
-                    → {{ getNextStatusLabel(mission.statut) }}
-                  </button>
-                }
+                <div class="flex items-center gap-1.5">
+                  @if (getNextStatus(mission.statut)) {
+                    <button type="button" (click)="advanceMission(mission)"
+                      class="px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold transition-colors whitespace-nowrap">
+                      → {{ getNextStatusLabel(mission.statut) }}
+                    </button>
+                  }
+                  @if (mission.statut === 'planifiee') {
+                    <button type="button" (click)="openQrPanel(mission)" title="QR Code"
+                      class="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11h.01M5 19h.01M5 11h.01M11 5h2v2h-2zM5 5h2v2H5zM5 13h2v2H5zM11 11h2v2h-2zm0 6h2v2h-2zm6-6h2v2h-2z"/></svg>
+                    </button>
+                  }
+                  @if (mission.statut !== 'terminee' && mission.statut !== 'annulee') {
+                    <button type="button" (click)="annulerMission(mission)" title="Annuler"
+                      class="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                  }
+                </div>
               </td>
 
             </tr>
@@ -514,6 +528,63 @@
         }
         {{ isEditingVehicle() ? 'Enregistrer' : 'Ajouter à la flotte' }}
       </button>
+    </div>
+  </div>
+}
+
+<!-- ════════════════════════════════════════════════════════════════════
+     PANNEAU — Confirmation d'arrivée + signature HTML5 (obligatoire CDC §10)
+     ════════════════════════════════════════════════════════════════════ -->
+@if (showArriveePanel()) {
+  <div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" (click)="closeArriveePanel()">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md" (click)="$event.stopPropagation()">
+      <div class="px-6 py-5 border-b border-gray-100">
+        <h2 class="text-lg font-bold text-gray-900">Confirmer l'arrivée</h2>
+        <p class="text-xs text-gray-500 mt-1 font-mono">{{ arriveeTarget()?.numero }}</p>
+      </div>
+      <div class="px-6 py-5 space-y-3">
+        <p class="text-sm text-gray-600">La signature du réceptionnaire est obligatoire pour confirmer la livraison.</p>
+        <div class="border-2 border-dashed border-gray-300 rounded-xl overflow-hidden bg-slate-50">
+          <canvas #signatureCanvas width="400" height="180" class="w-full touch-none cursor-crosshair"></canvas>
+        </div>
+        <button type="button" (click)="clearSignature()" class="text-xs font-semibold text-gray-500 hover:text-gray-700">
+          Effacer la signature
+        </button>
+      </div>
+      <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex gap-3">
+        <button type="button" (click)="closeArriveePanel()" class="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors">Annuler</button>
+        <button type="button" (click)="confirmArrivee()" [disabled]="!hasSignature()"
+          class="flex-1 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-sm font-semibold transition-colors disabled:opacity-50">
+          Confirmer l'arrivée
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ════════════════════════════════════════════════════════════════════
+     PANNEAU — QR Code de la mission
+     ════════════════════════════════════════════════════════════════════ -->
+@if (showQrPanel()) {
+  <div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" (click)="closeQrPanel()">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm text-center" (click)="$event.stopPropagation()">
+      <div class="px-6 py-5 border-b border-gray-100">
+        <h2 class="text-lg font-bold text-gray-900">QR Code mission</h2>
+        <p class="text-xs text-gray-500 mt-1 font-mono">{{ qrTarget()?.numero }}</p>
+      </div>
+      <div class="px-6 py-6">
+        @if (qrLoading()) {
+          <div class="flex items-center justify-center py-10 text-gray-400 gap-2">
+            <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+          </div>
+        } @else if (qrImageBase64()) {
+          <img [src]="'data:image/png;base64,' + qrImageBase64()" alt="QR Code mission" class="mx-auto rounded-xl border border-gray-100" />
+          <p class="text-xs text-gray-400 mt-3">Le chauffeur scanne ce code pour démarrer le chargement.</p>
+        }
+      </div>
+      <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/50">
+        <button type="button" (click)="closeQrPanel()" class="w-full py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors">Fermer</button>
+      </div>
     </div>
   </div>
 }

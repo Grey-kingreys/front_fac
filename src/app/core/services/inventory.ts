@@ -100,6 +100,132 @@ export interface MovementPayload {
   motif?: string;
 }
 
+// ============================================================
+// TRANSFERTS INTER-DÉPÔTS — CDC §3.3
+// Cycle de vie backend (apps/stocks/models.py TransfertStock) :
+//   demande (création) → expedier (statut EN_TRANSIT, déclenche auto une
+//   Mission logistique via signal) → receptionner (statut RECU) | annuler
+// ============================================================
+
+export type TransfertStatus = 'demande' | 'en_transit' | 'recu' | 'annule';
+
+export interface LigneTransfertInput {
+  produit: number;
+  quantite_envoyee: number;
+}
+
+export interface LigneTransfert {
+  id: number;
+  produit: number;
+  produit_nom: string;
+  quantite_envoyee: number;
+  quantite_recue: number | null;
+}
+
+export interface Transfert {
+  id: number;
+  numero: string;              // ex: "TRF-202606-0001"
+  statut: TransfertStatus;
+  statut_label: string;
+  depot_source: number;
+  depot_source_nom: string;
+  depot_destination: number;
+  depot_destination_nom: string;
+  lignes: LigneTransfert[];
+  created_at: string;
+}
+
+export interface PaginatedTransferts {
+  count: number;
+  results: Transfert[];
+}
+
+export interface TransfertCreatePayload {
+  depot_source: number;
+  depot_destination: number;
+  lignes: LigneTransfertInput[];
+}
+
+// ============================================================
+// INVENTAIRES PHYSIQUES — CDC §3.3
+// Cycle : création (statut en_cours) → saisie des quantités comptées par
+// ligne → valider (calcule les écarts théorique/compté et applique le stock)
+// ============================================================
+
+export type InventaireStatus = 'en_cours' | 'valide' | 'annule';
+
+export interface LigneInventaire {
+  id: number;
+  produit: number;
+  produit_nom: string;
+  quantite_theorique: number;
+  quantite_comptee: number | null;
+  ecart: number | null;
+}
+
+export interface Inventaire {
+  id: number;
+  numero: string;               // ex: "INV-202606-0001"
+  statut: InventaireStatus;
+  statut_label: string;
+  depot: number;
+  depot_nom: string;
+  cree_par_nom: string;
+  valide_par_nom: string | null;
+  lignes: LigneInventaire[];
+  created_at: string;
+}
+
+export interface PaginatedInventaires {
+  count: number;
+  results: Inventaire[];
+}
+
+export interface InventaireCreatePayload {
+  depot: number;
+  produits?: number[]; // optionnel — le backend pré-remplit les lignes théoriques
+}
+
+export interface LigneInventaireSaisie {
+  ligne_id: number;
+  quantite_comptee: number;
+}
+
+// ============================================================
+// AJUSTEMENTS DE STOCK — CDC §3.3
+// Toute correction manuelle de stock nécessite un motif et une validation
+// par un superviseur/admin (statut: en_attente → approuve | refuse)
+// ============================================================
+
+export type AjustementStatus = 'en_attente' | 'approuve' | 'refuse';
+
+export interface Ajustement {
+  id: number;
+  depot: number;
+  depot_nom: string;
+  produit: number;
+  produit_nom: string;
+  quantite: number;            // signé : positif = ajout, négatif = retrait
+  motif: string;
+  statut: AjustementStatus;
+  statut_label: string;
+  demande_par_nom: string;
+  traite_par_nom: string | null;
+  created_at: string;
+}
+
+export interface PaginatedAjustements {
+  count: number;
+  results: Ajustement[];
+}
+
+export interface AjustementCreatePayload {
+  depot: number;
+  produit: number;
+  quantite: number;
+  motif: string;        // obligatoire côté backend (motif_obligatoire)
+}
+
 @Injectable({ providedIn: 'root' })
 export class InventoryService {
   private http = inject(HttpClient);
@@ -157,5 +283,97 @@ export class InventoryService {
 
   updateThreshold(stockItemId: number, threshold: number): Observable<StockItem> {
     return this.http.patch<StockItem>(`${this.BASE}/stocks/${stockItemId}/`, { seuil_alerte: threshold });
+  }
+
+  // ── Transferts inter-dépôts ─────────────────────────────────────────────
+  // CRUD /api/transferts/ + actions /expedier/ /receptionner/ /annuler/
+
+  listTransferts(params: { page?: number; page_size?: number; statut?: string; depot?: number } = {}): Observable<PaginatedTransferts> {
+    const q = new URLSearchParams();
+    if (params.page) q.set('page', String(params.page));
+    if (params.page_size) q.set('page_size', String(params.page_size));
+    if (params.statut) q.set('statut', params.statut);
+    if (params.depot) q.set('depot', String(params.depot));
+    const qs = q.toString();
+    return this.http.get<PaginatedTransferts>(`${this.BASE}/transferts/${qs ? '?' + qs : ''}`);
+  }
+
+  getTransfert(id: number): Observable<Transfert> {
+    return this.http.get<Transfert>(`${this.BASE}/transferts/${id}/`);
+  }
+
+  createTransfert(data: TransfertCreatePayload): Observable<Transfert> {
+    return this.http.post<Transfert>(`${this.BASE}/transferts/`, data);
+  }
+
+  // Démarre le transit — déclenche côté backend la création auto d'une Mission logistique
+  expedierTransfert(id: number): Observable<Transfert> {
+    return this.http.post<Transfert>(`${this.BASE}/transferts/${id}/expedier/`, {});
+  }
+
+  // Réception au dépôt destination — quantités reçues par ligne (peuvent différer de l'envoi)
+  receptionnerTransfert(id: number, lignes: { ligne_id: number; quantite_recue: number }[]): Observable<Transfert> {
+    return this.http.post<Transfert>(`${this.BASE}/transferts/${id}/receptionner/`, { lignes });
+  }
+
+  annulerTransfert(id: number): Observable<Transfert> {
+    return this.http.post<Transfert>(`${this.BASE}/transferts/${id}/annuler/`, {});
+  }
+
+  // ── Inventaires physiques ────────────────────────────────────────────────
+  // CRUD /api/inventaires/ + action /valider/
+
+  listInventaires(params: { page?: number; page_size?: number; statut?: string; depot?: number } = {}): Observable<PaginatedInventaires> {
+    const q = new URLSearchParams();
+    if (params.page) q.set('page', String(params.page));
+    if (params.page_size) q.set('page_size', String(params.page_size));
+    if (params.statut) q.set('statut', params.statut);
+    if (params.depot) q.set('depot', String(params.depot));
+    const qs = q.toString();
+    return this.http.get<PaginatedInventaires>(`${this.BASE}/inventaires/${qs ? '?' + qs : ''}`);
+  }
+
+  getInventaire(id: number): Observable<Inventaire> {
+    return this.http.get<Inventaire>(`${this.BASE}/inventaires/${id}/`);
+  }
+
+  createInventaire(data: InventaireCreatePayload): Observable<Inventaire> {
+    return this.http.post<Inventaire>(`${this.BASE}/inventaires/`, data);
+  }
+
+  // Saisie des quantités comptées avant validation finale
+  updateLigneInventaire(inventaireId: number, ligneId: number, quantite_comptee: number): Observable<Inventaire> {
+    return this.http.patch<Inventaire>(`${this.BASE}/inventaires/${inventaireId}/`, {
+      lignes: [{ id: ligneId, quantite_comptee }],
+    });
+  }
+
+  // Calcule les écarts et applique les corrections de stock définitivement
+  validerInventaire(id: number): Observable<Inventaire> {
+    return this.http.post<Inventaire>(`${this.BASE}/inventaires/${id}/valider/`, {});
+  }
+
+  // ── Ajustements de stock (motif obligatoire + validation superviseur) ──
+
+  listAjustements(params: { page?: number; page_size?: number; statut?: string; depot?: number } = {}): Observable<PaginatedAjustements> {
+    const q = new URLSearchParams();
+    if (params.page) q.set('page', String(params.page));
+    if (params.page_size) q.set('page_size', String(params.page_size));
+    if (params.statut) q.set('statut', params.statut);
+    if (params.depot) q.set('depot', String(params.depot));
+    const qs = q.toString();
+    return this.http.get<PaginatedAjustements>(`${this.BASE}/ajustements-stock/${qs ? '?' + qs : ''}`);
+  }
+
+  createAjustement(data: AjustementCreatePayload): Observable<Ajustement> {
+    return this.http.post<Ajustement>(`${this.BASE}/ajustements-stock/`, data);
+  }
+
+  approuverAjustement(id: number): Observable<Ajustement> {
+    return this.http.post<Ajustement>(`${this.BASE}/ajustements-stock/${id}/approuver/`, {});
+  }
+
+  refuserAjustement(id: number, motif?: string): Observable<Ajustement> {
+    return this.http.post<Ajustement>(`${this.BASE}/ajustements-stock/${id}/refuser/`, motif ? { motif } : {});
   }
 }

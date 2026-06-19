@@ -16,7 +16,15 @@
 //   POST /api/vehicules/         créer véhicule
 //   GET  /api/missions/          liste missions
 //   POST /api/missions/          créer mission
-//   PATCH /api/missions/{id}/    avancer statut
+//   POST /api/missions/{id}/chargement/   démarrer chargement
+//   POST /api/missions/{id}/transit/      démarrer transit
+//   POST /api/missions/{id}/arrivee/      déclarer arrivée (+ signature)
+//   POST /api/missions/{id}/terminer/     terminer mission
+//   POST /api/missions/{id}/annuler/      annuler mission
+//   GET  /api/missions/{id}/qr/           QR code de la mission
+//   POST /api/missions/scanner-qr/        scanner un QR pour démarrer
+//   GET  /api/missions/{id}/positions/    historique GPS
+//   GET  /api/missions/{id}/bon-livraison/ PDF signé
 //   GET  /api/users/?role=chauffeur   liste chauffeurs
 //   GET  /api/depots/            liste dépôts
 // ============================================================
@@ -27,7 +35,7 @@ import { environment } from '../../../environments/environment';
 
 export type MissionStatus =
   | 'planifiee' | 'chargement' | 'en_transit'
-  | 'arrivee'   | 'litige'     | 'terminee';
+  | 'arrivee'   | 'litige'     | 'terminee'   | 'annulee';
 
 // ── Véhicule ─────────────────────────────────────────────────────────────────
 
@@ -167,8 +175,56 @@ export class LogisticsService {
     return this.http.post<Mission>(`${this.BASE}/missions/`, data);
   }
 
-  updateMissionStatus(id: number, statut: MissionStatus): Observable<Mission> {
-    return this.http.patch<Mission>(`${this.BASE}/missions/${id}/`, { statut });
+  // ── Cycle de vie d'une mission — actions dédiées (pas un PATCH générique) ──
+  // Le backend (apps/logistique/views.py) expose une action par étape, chacune
+  // avec sa propre logique métier (ex: chargement vérifie les lignes, arrivee
+  // demande la signature). Le simple PATCH {statut} n'est pas son contrat.
+
+  demarrerChargement(id: number): Observable<Mission> {
+    return this.http.post<Mission>(`${this.BASE}/missions/${id}/chargement/`, {});
+  }
+
+  demarrerTransit(id: number): Observable<Mission> {
+    return this.http.post<Mission>(`${this.BASE}/missions/${id}/transit/`, {});
+  }
+
+  // signatureBase64 : image PNG encodée en base64 capturée depuis un <canvas>
+  // (signature HTML5 du chauffeur/réceptionnaire à l'arrivée — obligatoire CDC)
+  declarerArrivee(id: number, signatureBase64?: string): Observable<Mission> {
+    return this.http.post<Mission>(`${this.BASE}/missions/${id}/arrivee/`, {
+      signature_arrivee: signatureBase64 ?? null,
+    });
+  }
+
+  terminerMission(id: number): Observable<Mission> {
+    return this.http.post<Mission>(`${this.BASE}/missions/${id}/terminer/`, {});
+  }
+
+  annulerMission(id: number): Observable<Mission> {
+    return this.http.post<Mission>(`${this.BASE}/missions/${id}/annuler/`, {});
+  }
+
+  // GET /api/missions/{id}/qr/ — image QR encodée en base64 à afficher/imprimer
+  getMissionQr(id: number): Observable<{ qr_code_base64: string }> {
+    return this.http.get<{ qr_code_base64: string }>(`${this.BASE}/missions/${id}/qr/`);
+  }
+
+  // POST /api/missions/scanner-qr/ — le chauffeur scanne le QR pour démarrer
+  // automatiquement le chargement (PLANIFIEE → CHARGEMENT)
+  scannerQr(qrCode: string): Observable<Mission> {
+    return this.http.post<Mission>(`${this.BASE}/missions/scanner-qr/`, { qr_code: qrCode });
+  }
+
+  // GET /api/missions/{id}/positions/ — historique GPS de la mission
+  getMissionPositions(id: number): Observable<{ latitude: number; longitude: number; vitesse_kmh: number; created_at: string }[]> {
+    return this.http.get<{ latitude: number; longitude: number; vitesse_kmh: number; created_at: string }[]>(
+      `${this.BASE}/missions/${id}/positions/`
+    );
+  }
+
+  // GET /api/missions/{id}/bon-livraison/ — PDF signé (reportlab)
+  downloadBonLivraison(id: number): Observable<Blob> {
+    return this.http.get(`${this.BASE}/missions/${id}/bon-livraison/`, { responseType: 'blob' });
   }
 
   // ── Chauffeurs (users avec role=chauffeur) ────────────────────────────────

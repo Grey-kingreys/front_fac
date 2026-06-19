@@ -111,6 +111,12 @@ export interface SaleCreatePayload {
   reference_paiement?: string;              // référence Mobile Money
 }
 
+export interface PaiementPayload {
+  montant: number;
+  mode: 'especes' | 'orange_money' | 'mtn_money' | 'virement' | 'points_fidelite';
+  reference?: string; // obligatoire pour orange_money / mtn_money / virement côté backend
+}
+
 @Injectable({ providedIn: 'root' })
 export class SalesService {
   private http = inject(HttpClient);
@@ -153,6 +159,25 @@ export class SalesService {
 
   cancel(id: number): Observable<Sale> {
     return this.http.post<Sale>(`${this.BASE}/${id}/annuler/`, {});
+  }
+
+  // ── Paiement complémentaire sur une commande à crédit/partielle ───────────
+  // POST /api/commandes/{id}/paiement/
+
+  addPaiement(id: number, data: PaiementPayload): Observable<Sale> {
+    return this.http.post<Sale>(`${this.BASE}/${id}/paiement/`, data);
+  }
+
+  // ── Facture PDF et bon de livraison PDF ────────────────────────────────────
+  // GET /api/commandes/{id}/facture/ et /bon-livraison/ — le backend retourne
+  // un fichier binaire (reportlab), donc on demande explicitement un Blob.
+
+  downloadFacture(id: number): Observable<Blob> {
+    return this.http.get(`${this.BASE}/${id}/facture/`, { responseType: 'blob' });
+  }
+
+  downloadBonLivraison(id: number): Observable<Blob> {
+    return this.http.get(`${this.BASE}/${id}/bon-livraison/`, { responseType: 'blob' });
   }
 
   // ── Liste des clients (pour le select du formulaire) ─────────────────────
