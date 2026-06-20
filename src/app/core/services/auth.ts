@@ -77,7 +77,7 @@ export class AuthService {
   private twoFactorPendingSignal = signal<TwoFactorPending | null>(null);
   public twoFactorPending = this.twoFactorPendingSignal.asReadonly();
 
-  // ── Simulation de rôle (SuperAdmin uniquement) ───────────────────────────────
+  // ── Simulation de rôle (Admin uniquement) ────────────────────────────────────
   private realUserSignal = signal<CurrentUser | null>(null);
   public realUser = this.realUserSignal.asReadonly();
   public isSimulating = computed(() => this.realUserSignal() !== null);
@@ -198,7 +198,7 @@ export class AuthService {
     );
   }
 
-  // ── Simulation (SuperAdmin only) ─────────────────────────────────────────────
+  // ── Simulation (Admin only) ──────────────────────────────────────────────────
   simulateUser(user: CurrentUser): void {
     if (!this.realUserSignal()) {
       this.realUserSignal.set(this.currentUserSignal());
@@ -284,6 +284,8 @@ export class AuthService {
     this.currentUserSignal.set(null);
     this.isLoggedInSignal.set(false);
     this.twoFactorPendingSignal.set(null);
+    // Réinitialiser toute simulation en cours (déconnexion manuelle ou via 401 interceptor).
+    this.realUserSignal.set(null);
   }
 
   private scheduleTokenRefresh(): void {

@@ -16,13 +16,15 @@
   </div>
   <div class="flex items-center gap-2">
     @if (activeTab() === 'sessions') {
-      <button type="button" (click)="showOpenPanel.set(true)"
-        class="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-        </svg>
-        Ouvrir une session
-      </button>
+      @if (!isCaissier() || !activeSession()) {
+        <button type="button" (click)="openOpenPanel()"
+          class="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+          </svg>
+          Ouvrir une session
+        </button>
+      }
     } @else {
       <button type="button" (click)="showDepensePanel.set(true)"
         class="inline-flex items-center gap-2 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm">
@@ -35,7 +37,8 @@
   </div>
 </div>
 
-<!-- KPIs -->
+<!-- KPIs (vue gestion — masqués pour le caissier, qui voit la carte session active) -->
+@if (!isCaissier()) {
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
   <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
     <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center mb-3">
@@ -75,6 +78,7 @@
     <p class="text-sm text-gray-500 mt-0.5">Sessions clôturées</p>
   </div>
 </div>
+}
 
 <!-- Onglets -->
 <div class="flex gap-1 mb-4 bg-gray-100 p-1 rounded-xl w-fit">
@@ -92,6 +96,73 @@
 
 <!-- ── ONGLET SESSIONS ──────────────────────────────────────────────────────── -->
 @if (activeTab() === 'sessions') {
+
+  <!-- ── Carte session active (miroir mobile « Caisse & Sessions ») ─────────── -->
+  @if (activeSession(); as s) {
+    <div class="rounded-2xl p-5 mb-6 text-white shadow-lg bg-gradient-to-br from-emerald-600 to-teal-700">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/>
+          </svg>
+        </div>
+        <div class="min-w-0">
+          <p class="font-bold">Session ouverte</p>
+          <p class="text-xs text-white/75 truncate">{{ s.caisse_nom }} · depuis {{ formatDate(s.ouvert_le) }}</p>
+        </div>
+        <span class="ml-auto inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/15 text-xs font-semibold shrink-0">
+          <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span> Ouverte
+        </span>
+      </div>
+
+      <div class="grid grid-cols-3 gap-3 border-t border-white/20 pt-4">
+        <div>
+          <p class="text-[11px] text-white/65">Solde ouverture</p>
+          <p class="text-sm font-bold truncate">{{ formatPrice(s.solde_ouverture) }}</p>
+        </div>
+        <div>
+          <p class="text-[11px] text-white/65">Entrées</p>
+          <p class="text-sm font-bold truncate">{{ formatPrice(s.total_entrees ?? 0) }}</p>
+        </div>
+        <div>
+          <p class="text-[11px] text-white/65">Sorties</p>
+          <p class="text-sm font-bold truncate">{{ formatPrice(s.total_sorties ?? 0) }}</p>
+        </div>
+      </div>
+      <div class="mt-3">
+        <p class="text-[11px] text-white/65">Solde calculé (système)</p>
+        <p class="text-lg font-bold truncate">{{ formatPrice(soldeCalcule(s)) }}</p>
+      </div>
+
+      @if (isCaissier()) {
+        <button type="button" (click)="openCloseModal(s)"
+          class="mt-4 w-full py-2.5 rounded-xl bg-white/15 hover:bg-white/25 border border-white/30 text-white text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+          </svg>
+          Fermer la session
+        </button>
+      }
+    </div>
+  } @else if (isCaissier()) {
+    <!-- Aucune session active — vue caissier -->
+    <div class="rounded-2xl p-5 mb-6 bg-white border border-gray-200 shadow-sm flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
+        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+        </svg>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="font-semibold text-gray-800">Aucune session active</p>
+        <p class="text-sm text-gray-400">Ouvrez une session pour enregistrer vos ventes et encaissements.</p>
+      </div>
+      <button type="button" (click)="openOpenPanel()"
+        class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold shrink-0">
+        Ouvrir une session
+      </button>
+    </div>
+  }
+
   <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
     <div class="px-5 py-4 border-b border-gray-100">
       <h2 class="text-base font-bold text-gray-900">Historique des sessions</h2>
@@ -107,7 +178,7 @@
       </div>
     }
 
-    @if (!loading() && sessions().length === 0) {
+    @if (!loading() && displayedSessions().length === 0) {
       <div class="flex flex-col items-center justify-center py-20 text-center px-6">
         <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mb-4">
           <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
@@ -119,7 +190,7 @@
       </div>
     }
 
-    @if (!loading() && sessions().length > 0) {
+    @if (!loading() && displayedSessions().length > 0) {
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
           <thead>
@@ -135,7 +206,7 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-50">
-            @for (session of sessions(); track session.id) {
+            @for (session of displayedSessions(); track session.id) {
               <tr class="hover:bg-slate-50/50 transition-colors">
 
                 <!-- Caisse — ✅ session.caisse_nom -->
@@ -261,7 +332,9 @@
     <div class="flex items-center justify-between px-6 py-5 border-b border-gray-100 shrink-0">
       <div>
         <h2 class="text-lg font-bold text-gray-900">Ouvrir une session</h2>
-        <p class="text-xs text-gray-500 mt-0.5">Sélectionnez une caisse et indiquez le solde d'ouverture</p>
+        <p class="text-xs text-gray-500 mt-0.5">
+          {{ isCaissier() ? 'Comptez votre caisse et indiquez le solde d\'ouverture' : 'Vérifiez la caisse et indiquez le solde d\'ouverture' }}
+        </p>
       </div>
       <button type="button" (click)="showOpenPanel.set(false)" class="p-2 rounded-xl text-gray-400 hover:bg-gray-100">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
@@ -272,27 +345,46 @@
 
     <div class="flex-1 overflow-y-auto px-6 py-5 space-y-5">
 
-      <!-- ✅ Select dynamique des caisses depuis /api/caisses/ -->
-      <div>
-        <label class="block text-sm font-semibold text-gray-700 mb-1.5">
-          Caisse physique <span class="text-red-500">*</span>
-        </label>
-        @if (caisses().length === 0) {
-          <p class="text-sm text-amber-600 bg-amber-50 rounded-xl p-3">
-            ⚠️ Aucune caisse disponible. Demandez à un administrateur d'en créer une.
-          </p>
-        } @else {
-          <select [(ngModel)]="openForm.caisse"
-            class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400">
-            <option [value]="0">— Sélectionner une caisse —</option>
-            @for (caisse of caisses(); track caisse.id) {
-              <option [value]="caisse.id">
-                {{ caisse.nom }} — {{ caisse.depot_nom }} (solde: {{ formatPrice(caisse.solde_actuel) }})
-              </option>
-            }
-          </select>
-        }
-      </div>
+      <!-- Caisse : sélection manuelle (gestion) — auto-résolue pour le caissier -->
+      @if (!isCaissier()) {
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+            Caisse physique <span class="text-red-500">*</span>
+          </label>
+          @if (caisses().length === 0) {
+            <p class="text-sm text-amber-600 bg-amber-50 rounded-xl p-3">
+              ⚠️ Aucune caisse ouverte. Demandez à un administrateur d'en ouvrir une dans « Gestion des caisses ».
+            </p>
+          } @else if (caisses().length === 1) {
+            <!-- Mono-dépôt : unique caisse ouverte → prise d'office (lecture seule) -->
+            <div class="flex items-center gap-2 text-sm bg-blue-50 rounded-xl p-3 border border-blue-100">
+              <svg class="w-4 h-4 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+              </svg>
+              <span class="text-gray-700">
+                <span class="font-semibold">{{ caisses()[0].nom }}</span> — {{ caisses()[0].depot_nom }}
+              </span>
+            </div>
+          } @else {
+            <select [(ngModel)]="openForm.caisse"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400">
+              <option [value]="0">— Sélectionner une caisse —</option>
+              @for (caisse of caisses(); track caisse.id) {
+                <option [value]="caisse.id">
+                  {{ caisse.nom }} — {{ caisse.depot_nom }} (solde: {{ formatPrice(caisse.solde_actuel) }})
+                </option>
+              }
+            </select>
+          }
+        </div>
+      } @else {
+        <div class="flex items-center gap-2 text-sm text-gray-500 bg-gray-50 rounded-xl p-3">
+          <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+          </svg>
+          La caisse de votre dépôt est sélectionnée automatiquement.
+        </div>
+      }
 
       <!-- Solde d'ouverture -->
       <div>
@@ -316,7 +408,7 @@
         class="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-100">
         Annuler
       </button>
-      <button type="button" (click)="openSession()" [disabled]="!openForm.caisse || actionLoading()"
+      <button type="button" (click)="openSession()" [disabled]="(!isCaissier() && !openForm.caisse) || actionLoading()"
         class="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-sm font-semibold flex items-center justify-center gap-2">
         @if (actionLoading()) {
           <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -354,7 +446,7 @@
       </div>
 
       <!-- Solde réel — ✅ closeForm.solde_reel -->
-      <div class="mb-4">
+      <div class="mb-3">
         <label class="block text-sm font-semibold text-gray-700 mb-1.5">
           Solde réel compté (GNF) <span class="text-red-500">*</span>
         </label>
@@ -362,11 +454,27 @@
           class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"/>
       </div>
 
-      <!-- Motif écart — ✅ closeForm.motif_ecart -->
+      <!-- Écart calculé en direct -->
+      <div class="mb-4 flex items-center justify-between px-3.5 py-2.5 rounded-xl border"
+        [class]="closeEcartNonNul ? 'bg-red-50 border-red-200' : 'bg-emerald-50 border-emerald-200'">
+        <span class="text-sm font-medium" [class]="closeEcartNonNul ? 'text-red-600' : 'text-emerald-600'">Écart</span>
+        <span class="text-sm font-bold font-mono" [class]="closeEcartNonNul ? 'text-red-700' : 'text-emerald-700'">
+          {{ formatPrice(closeEcart) }}
+        </span>
+      </div>
+
+      <!-- Motif écart — obligatoire si écart ≠ 0 -->
       <div class="mb-5">
-        <label class="block text-sm font-semibold text-gray-700 mb-1.5">Motif d'écart (si applicable)</label>
+        <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+          Motif d'écart
+          @if (closeEcartNonNul) { <span class="text-red-500">*</span> } @else { <span class="text-gray-400">(si applicable)</span> }
+        </label>
         <input type="text" [(ngModel)]="closeForm.motif_ecart" placeholder="Ex: Erreur de rendu monnaie…"
-          class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"/>
+          class="w-full px-3.5 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
+          [class]="closeEcartNonNul && !closeForm.motif_ecart ? 'border-red-300' : 'border-gray-200'"/>
+        @if (closeEcartNonNul) {
+          <p class="text-xs text-red-500 mt-1">Un motif est obligatoire en cas d'écart.</p>
+        }
       </div>
 
       <div class="flex gap-3">

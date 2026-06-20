@@ -2,6 +2,62 @@
 
 > CDC v1.0 — Mars 2026 | Groupe 1 | Deadline livraison : **20/06/2026**
 
+## ➕ RH — présence 100% self-service + récap user-based (20/06/2026)
+
+Suite à la clarification « **les employés sont les utilisateurs de l'entreprise** » :
+- **Formulaire « Nouvelle présence » (saisie manuelle admin) SUPPRIMÉ** ([hr.html](src/app/features/hr/hr/hr.html)
+  + [hr.ts](src/app/features/hr/hr/hr.ts)) : il faisait doublon avec le pointage self-service et son sélecteur
+  `/employes/` était vide. La présence est désormais **100 % self-service** (carte de pointage géolocalisée) ;
+  l'admin **consulte** le récap. Bouton FAB + panneau + `presenceForm`/`canCreatePresence` retirés.
+- **Récap = utilisateurs** : `GET /presences/recap/` renvoie l'effectif basé sur les **comptes de l'entreprise**
+  rattachés à un dépôt (présents = ont pointé, absents = sinon). Aucun changement côté affichage (mêmes clés).
+- **Auto-provision backend** : un employé sans fiche peut maintenant pointer (créée à la volée) → la carte de
+  pointage s'affiche pour tout le personnel (plus de message « aucune fiche employé » bloquant). `tsc`+`ng build`=0.
+
+## ➕ RH self-service — 2ᵉ vague : navigation, absents, motif de refus (20/06/2026)
+
+Corrections suite à un audit complet du module RH self-service.
+
+- **Navigation RH ouverte à tout le personnel** ([sidebar.ts](src/app/shared/layout/sidebar/sidebar.ts)) :
+  l'entrée « Ressources Humaines » (`/rh`) passe de `['admin','superviseur']` à **tous les rôles sauf
+  superadmin** — sinon les employés ne peuvent pas pointer / demander un congé. Route `/rh` sans roleGuard
+  (déjà le cas).
+- **Onglet par défaut** ([hr.ts](src/app/features/hr/hr/hr.ts)) : si `!canManageUsers()` → ouvre sur
+  **Présences** (avant : « Utilisateurs » → `GET /users/` 403). L'onglet « Utilisateurs » est **masqué**
+  pour les non-admins.
+- **Liste présences réservée aux managers** : `GET /presences/` = `RH_READ` (admin/superviseur) côté backend.
+  Les autres rôles ne chargent **plus** la liste (évite un 403) — ils n'ont que leur **carte de pointage**
+  (+ message si aucune fiche employé liée).
+- **Récap du jour (absents)** : bannière admin/superviseur consommant `GET /presences/recap/` →
+  **présents / absents / effectif** + liste dépliable des absents (CDC « gérer présence ET absence »).
+- **Motif de refus de congé** : modale de saisie au refus → `POST /conges/{id}/refuser/ {motif_traitement}` ;
+  affichage « Motif du refus : … » sur les congés refusés (`motif_traitement`).
+- **Badges « Sur site / Hors site »** rendus **visibles sur mobile** (étaient en `hidden sm:`).
+- `canCreatePresence` aligné sur **admin** (= `RH_WRITE` backend). `tsc` + `ng build` = 0 erreur.
+
+### Superadmin — Zones & Dépôts retirés (20/06/2026)
+
+Le superadmin gère la **plateforme SaaS**, pas les zones/dépôts internes d'une entreprise (CDC §3.15).
+Retiré `superadmin` des rôles de l'entrée sidebar « Zones & Dépôts » et du `roleGuard` de la route
+`/zones` (`app.routes.ts`) → `['admin']`. (Le backend bloquait déjà via `IsSuperAdminBlocked`.)
+
+## ➕ RH self-service : pointage présence + demande de congé (20/06/2026)
+
+Onglets **Présences** et **Congés** de `/rh` passés en self-service (parité avec le mobile).
+⚠️ nécessite le backend RH déployé (migrations `companies/0007`, `rh/0003`, `notifications/0002`).
+
+- **Présences** ([hr.ts](src/app/features/hr/hr/hr.ts) + [hr.html](src/app/features/hr/hr/hr.html)) :
+  carte « Pointer ma présence » en haut de l'onglet → bouton qui lit la **géoloc navigateur**
+  (`navigator.geolocation`) et envoie `{latitude, longitude}` à `POST /presences/pointer/`. État piloté
+  par `GET /presences/aujourdhui/` (`myPresence` signal) : le bouton disparaît une fois pointé et affiche
+  « Présence enregistrée · pointé à HH:MM · à X m / hors site ». Badge **Sur site / Hors site**
+  (`dans_perimetre`) dans la liste. La saisie manuelle admin (`POST /presences/`) est conservée.
+- **Congés** : bouton « Demander un congé » ouvert à **tout le personnel** (`isStaff()`), formulaire
+  **sans sélecteur d'employé** (le backend déduit l'employé du compte) + bandeau d'info. `submitLeave()`
+  n'envoie plus `employe`. La validation `approuver`/`refuser` reste gatée admin/superviseur.
+- **Interfaces** étendues : `Presence` (+ géo), `Leave` (+ `demande_par_nom`, `motif_traitement`),
+  `PresenceTodayStatus`. `tsc --noEmit` = 0.
+
 ## ⚠️ Règle fondamentale — Backend déployé, source de vérité absolue
 
 > **Le backend Django (`back_fac`) est déjà déployé en production sur `https://gestion.kingreys.fr/api`. C'est lui la source de vérité. Ce frontend doit s'adapter au backend, jamais l'inverse.**
@@ -28,7 +84,125 @@
 | `POST /auth/password-reset/confirm/` | N'envoyait pas `new_password_confirm` | `reset-password.ts` corrigé |
 | `POST /auth/first-login/` | Envoyait `confirm_password` au lieu de `password_confirm` | `first-login.ts` corrigé |
 
+### Champ code_barre produit (20/06/2026)
+
+Ajout du code-barres sur la fiche produit : `Product.barcode` (mappé depuis `code_barre`), `ProductPayload.code_barre`,
+`BackendProduct.code_barre` + `mapProduct` (`core/services/products.ts`) ; champ de saisie **« Code-barres »** (optionnel)
+dans le formulaire produit (`products.ts` : 3 initialisations du `productForm` + `products.html` après la référence).
+⚠️ nécessite la migration backend `produits/0004` déployée.
+
+### Correctif (20/06/2026) — QR mission invisible
+
+| Endpoint | Bug | Correction |
+|----------|-----|------------|
+| `GET /missions/{id}/qr/` | Le front lisait `r.qr_code_base64` (champ inexistant) alors que le backend renvoie `{qr_code, image_base64}` → `qrImageBase64` restait `null` → modale QR vide (rien affiché). | `logistics.service.ts` (type retour → `{qr_code, image_base64}`) + `logistics.ts:openQrPanel` (`r.image_base64`). Backend = source de vérité, non modifié. |
+
+Ajout **bouton « Télécharger »** dans la modale QR (`logistics.ts:downloadQr` + `logistics.html`) : génère un PNG `QR-{numero}.png` via `<a download>` data-URI (pour impression / collage sur le bon de mission). ⚠️ **Fix** : le bouton utilisait `bg-primary`/`hover:bg-primary/90` — token **non défini** dans ce projet (Tailwind v4, aucun `--color-primary` en `@theme`) → fond transparent + `text-white` = bouton invisible (cliquable mais blanc sur blanc). Remplacé par `bg-blue-600`/`hover:bg-blue-700` comme tous les autres boutons primaires de l'app. **Ne jamais utiliser `bg-primary` côté front** — utiliser `bg-blue-600`. ⚠️ Le QR est **par mission** (UUID unique par mission, pas par véhicule) — il change à chaque mission, donc il s'imprime sur le bon de mission, pas en autocollant permanent sur le camion (ça, c'est le rôle de la puce **NFC** optionnelle, CDC §3.7).
+
+### Correctif (20/06/2026) — App entièrement figée (boutons morts) après un clic Simuler
+
+**Symptôme** : après avoir démarré une simulation de rôle, **tous** les boutons de l'app (Simuler, menu profil, repli sidebar…) cessent de répondre, définitivement.
+
+**Cause racine** (capturée au runtime via CDP) : computeds du dashboard avec accès imbriqué **non protégé** —
+`ventesData()?.totaux.nb_commandes`, `…?.totaux.ca_ttc` (×2), `superAdminData()?.companies.total/actives`. Le `?.`
+ne protège que le 1ᵉʳ niveau. Quand un endpoint `/analytics/*` répond **200 avec un objet sans le sous-objet attendu**
+(ou quand le changement de rôle via simulation fait basculer `dashboard.html` sur une branche lisant ces KPI), `.totaux`
+est `undefined` → `TypeError` **pendant le change detection**. Une exception en plein CD fige le rendu de toute l'app à
+chaque tick ⇒ tous les boutons paraissent morts.
+
+**Correctif** : null-safety complète (`?.totaux?.…`, `?.companies?.…`) dans `dashboard.ts`. Le `catchError(() => of(null))`
+gérait déjà le cas échec ; ce correctif gère le cas **succès au format inattendu**. Vérifié : reproduction CDP → après fix,
+simulation OK (bannière affichée), boutons réactifs, **zéro exception**. `tsc --noEmit` = 0.
+
+### Correctifs (20/06/2026) — Sidebar responsive mobile
+
+| Zone | Problème | Correction |
+|------|----------|------------|
+| `app-layout` + `sidebar` | Sur mobile, la sidebar restait affichée en permanence (fixe 280/72px) et le hamburger du topbar ne faisait que **replier** (comportement « PC ») au lieu d'ouvrir/fermer | Refonte en **drawer mobile-natif** : `<lg` la sidebar est hors écran (`-translate-x-full`), le ☰ ouvre un drawer glissant + **backdrop**, fermeture par backdrop / ✕ / clic sur un lien ; `>=lg` comportement inchangé (fixe + repli 280↔72). Détails : `app-layout.ts` (signal `mobileSidebarOpen`, `toggleMobileSidebar`), `app-layout.html` (backdrop, marge `lg:ml-*` responsive au lieu de `style.margin-left`), `sidebar.ts` (input `mobileOpen`, output `closeMobile`, signal `isMobile` via resize, `effectiveCollapsed`, icône `close`), `sidebar.html` (transform du drawer, bouton ✕ mobile, fermeture au clic de lien). Le repli 72px est devenu `lg:`-only. |
+
+> ⚠️ Hors sujet API : `npm install` exécuté car `leaflet@^1.9.4` (déclaré dans `package.json`, importé par `styles.css`) n'était pas présent dans `node_modules` → `ng serve` échouait sur `Can't resolve 'leaflet/dist/leaflet.css'`.
+
+### Correctifs (20/06/2026) — Audit responsive mobile (pages déjà construites)
+
+> Pendant Angular de l'audit design mobile_fac. La plupart des pages étaient déjà propres ; corrections ciblées :
+
+| Page | Correction |
+|------|------------|
+| `admin/companies.html`, `admin/users.html` | **Tableaux** enveloppés dans `<div class="overflow-x-auto">` (la colonne Actions pouvait déborder horizontalement sur mobile) ; barre de recherche `min-w-[220px]` → `min-w-0 sm:min-w-[220px]` (évite un retour à la ligne moche en `flex-wrap`). |
+| `auth/login`, `auth/forgot-password`, `auth/reset-password`, `auth/first-login` | `gap-12` → `gap-8 lg:gap-12` ; carte formulaire `p-8` → `p-6 sm:p-8` (cosmétique). |
+| `home.html` | Grille features `gap-8` → `gap-4 sm:gap-6 lg:gap-8`. |
+| `profile.html` | Boîtes OTP 2FA : `gap-2` → `gap-1.5 sm:gap-2`, inputs `w-10 h-13` → `w-9 sm:w-10 h-12 sm:h-13` (tiennent mieux sur ≤ 320px). |
+
+> Faux positifs écartés : modales slide-over `w-full max-w-md` (déjà pleine largeur mobile = OK). `ng build` dev = succès. Dashboard, formulaires d'auth, boutons : déjà responsive, non touchés.
+
+### Fusion RH ⇄ Utilisateurs + alignement sur le mobile (20/06/2026)
+
+Le mobile intègre la **gestion des utilisateurs système dans le RH** (pas d'espace « Utilisateurs » séparé). Le web
+avait deux espaces distincts (`/admin` = Utilisateurs `/users/` **et** `/rh` = Employés `/employes/` + Congés). Aligné
+sur le mobile :
+
+- **`/rh` réécrit en 3 onglets** (miroir `mobile_fac`) : **Utilisateurs** (`/users/` — liste + filtres rôle/statut +
+  recherche debounce 400 ms, CRUD complet : créer email/prénom/nom/téléphone/rôle/dépôt/mot de passe, éditer,
+  désactiver/réactiver via `PATCH is_active`, reset mot de passe, supprimer `DELETE /users/{id}/`) ·
+  **Présences** (`/presences/`, `ordering=-date`, création employé/date/type_presence[present|absent|retard|mission]/observations) ·
+  **Congés** (`/conges/`, filtre statut, création + approuver/refuser `POST /conges/{id}/approuver|refuser/`).
+  Le tab Utilisateurs réutilise `UsersService`. `/employes/` n'est plus un écran : il alimente seulement les sélecteurs
+  d'employé des présences/congés (comme le mobile).
+  **Formulaire de création renommé « employé »** (bouton/titre/toast) ; **sélecteur conditionnel zone/dépôt** : si rôle =
+  `superviseur` → dropdown **« Zone de supervision * »** (obligatoire, `zone_id`, dépôt forcé null) ; sinon **« Dépôt »**
+  (`depot_id`, zone forcée null) — miroir mobile + règle backend (`UserCreate/UpdateSerializer.validate()`). `UsersService`
+  étendu (`zone_id` en payload, `zone_id`/`zone_name` en réponse). `onRoleChange()` réinitialise l'affectation invalide au
+  changement de rôle. **Gating** : gestion des comptes = **admin** uniquement ;
+  validation congés = admin/superviseur ; création présence = admin/superviseur/gestionnaire_stock (via `AuthService.currentUser().role`).
+- **Espace « Utilisateurs » supprimé** : route `/admin` retirée d'`app.routes.ts`, entrée sidebar « Utilisateurs »
+  (`/admin`) retirée, composant `features/admin/users/` **supprimé**. Raccourci dashboard « Utilisateurs » repointé
+  `/admin` → `/rh`. (Companies `/companies` superadmin inchangé.)
+- **Rapports** : la page web `/rapports` a été portée à l'identique sur le mobile (feature `reports/`) — parité confirmée.
+
+`tsc --noEmit` = 0 · `ng build` dev = succès (0 erreur, 0 warning sur RH).
+
 ---
+
+### Finance — sélection de caisse à l'ouverture : caisses ouvertes only + auto-pick (20/06/2026)
+
+Alignement avec le mobile pour le panneau « Ouvrir une session » (admin/superviseur). Le `<select>`
+proposait **toutes** les caisses actives (y compris **fermées**, qui font échouer l'ouverture côté backend).
+Contrainte backend : `CaissePhysique` n'autorise **qu'une caisse ouverte par dépôt**
+(`UniqueConstraint(depot, condition=statut='ouverte')`) — pas une seule par entreprise.
+
+- `CaissePhysique` (interface, `finance.service.ts`) : champ **`statut: 'ouverte' | 'fermee'`** ajouté
+  (déjà renvoyé par `CaissePhysiqueSerializer`).
+- `loadCaisses()` filtre désormais **`is_active && statut === 'ouverte'`** (avant : `is_active` seul).
+- `openOpenPanel()` : si **une seule** caisse ouverte (cas mono-dépôt) → `openForm.caisse` **pré-sélectionnée
+  d'office** ; plusieurs → choix manuel.
+- `finance.html` : 0 caisse → message « Aucune caisse ouverte… » ; **1 caisse → tuile lecture seule**
+  (nom — dépôt, plus de `<select>`) ; ≥ 2 → `<select>` inchangé. Sous-titre « Sélectionnez » → « Vérifiez ».
+
+`tsc --noEmit` = 0.
+
+---
+
+### Finance — vue caissier « Caisse & Sessions » alignée mobile (20/06/2026)
+
+Le mobile a une UX caissier dédiée (carte « session active » + ouvrir/fermer sa propre session, caisse
+auto-résolue). Le web Finance était orienté gestion (KPIs globaux + table + sélection manuelle de caisse).
+Ajout côté web (`finance.ts`/`finance.html`, `finance.service.ts`) :
+- **Carte « session active »** en tête de l'onglet Sessions (gradient vert), miroir mobile : KPIs
+  **Solde ouverture / Entrées / Sorties / Solde calculé** (`total_entrees`/`total_sorties`/`solde_fermeture_theorique`
+  ajoutés à l'interface `CashSession` — déjà renvoyés par `SessionCaisseListSerializer`). Pour le **caissier**,
+  bouton **« Fermer la session »** sur la carte ; carte « Aucune session active » + **« Ouvrir une session »** sinon.
+- **Caisse auto-résolue** pour le caissier à l'ouverture (depuis `currentUser().depot_id` → caisse du dépôt), comme
+  le mobile — plus de sélection manuelle (conservée pour admin/superviseur). KPIs globaux **masqués pour le caissier**.
+- **Clôture** : **écart calculé en direct** (solde réel − solde calculé) + **motif obligatoire si écart ≠ 0**
+  (règle anti-fraude, validée aussi backend). `activeSession`/`isCaissier`/`soldeCalcule`/`closeEcart` = computeds.
+
+- **Isolation caissier** : un caissier ne voit/ferme que **ses propres** sessions. `displayedSessions` (computed)
+  filtre `s.caissier === currentUser().id` pour le rôle caissier (table + carte active). Le backend l'imposait déjà
+  (`SessionCaisseViewSet.get_queryset` → `filter(caissier=user)` ; `fermer` → `PermissionDenied` si pas la sienne) ;
+  ce filtre client ajoute la défense en profondeur et **corrige l'artefact de simulation** (le token admin renvoyait
+  toutes les sessions de l'entreprise, donc un caissier simulé voyait/fermait des sessions d'autres caissiers).
+
+`tsc --noEmit` = 0 · `ng build` dev = succès (0 erreur / 0 warning Finance).
 
 ## 📋 Règle de mise à jour — À faire après chaque session de travail
 
@@ -273,8 +447,7 @@ data: { roles: ['superadmin'] }  // roleGuard vérifie ce tableau
 | **maintenancier** | Interventions et maintenance des véhicules |
 | **commercial** | Clients, devis, commandes |
 
-**Simulation de rôle** : le superadmin peut simuler n'importe quel utilisateur via `AuthService.simulateUser()`.
-`isSimulating` et `simulatedAs` sont des signals computed.
+**Simulation de rôle** : **l'admin** (et lui seul — aligné sur `mobile_fac`, cf. CDC : le superadmin gère la plateforme SaaS, pas les données internes d'une entreprise) peut simuler n'importe quel utilisateur **actif de son entreprise** (soi-même exclu) via `AuthService.simulateUser()`. Gating UI : `canSimulate()` dans `authenticated-topbar` teste le **vrai** user connecté (`realUser ?? currentUser`). Simulation 100 % côté client : aucun nouveau JWT, le token de l'admin reste le seul utilisé pour les appels API — c'est une prévisualisation d'UI rôle-gated, pas une bascule de privilèges. `isSimulating` et `simulatedAs` sont des signals computed ; `clearAuth()` réinitialise `realUser` (reset de la simulation à toute déconnexion, y compris via 401 interceptor).
 
 Permissions granulaires : lecture seule / écriture / validation — gérées côté backend.
 Journal d'audit : toutes les actions sont tracées (qui, quand, quelle action).

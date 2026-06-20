@@ -21,7 +21,7 @@
 <!-- Barre de recherche + compteur -->
 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-4">
   <div class="flex flex-wrap gap-3 items-center">
-    <div class="relative flex-1 min-w-[220px]">
+    <div class="relative flex-1 min-w-0 sm:min-w-[220px]">
       <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.35-4.35"/></svg>
       <input
         type="text"
@@ -52,6 +52,7 @@
       <p class="text-sm mt-1">{{ search ? 'Essayez de modifier votre recherche.' : 'Ajoutez la première entreprise.' }}</p>
     </div>
   } @else {
+    <div class="overflow-x-auto">
     <table class="w-full text-sm">
       <thead>
         <tr class="border-b border-gray-100 bg-slate-50/60">
@@ -141,6 +142,7 @@
         }
       </tbody>
     </table>
+    </div>
 
     <!-- Pagination -->
     @if (totalPages() > 1) {

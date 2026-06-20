@@ -35,10 +35,12 @@ export class AuthenticatedTopbar {
   isSimulating = this.authService.isSimulating;
   simulatedAs = this.authService.simulatedAs;
 
-  // Vérifie le vrai user (même en simulation) pour afficher le bouton simulateur
-  isSuperAdmin = computed(() => {
+  // Vérifie le VRAI user connecté (même pendant une simulation) pour afficher le
+  // bouton simulateur. Réservé à l'admin (le superadmin gère la plateforme SaaS,
+  // pas les données internes d'une entreprise — cf. CDC, isolation multi-entreprise).
+  canSimulate = computed(() => {
     const real = this.authService.realUser() ?? this.currentUser();
-    return real?.role === 'superadmin';
+    return real?.role === 'admin';
   });
 
   isUserMenuOpen = signal(false);
@@ -115,9 +117,11 @@ export class AuthenticatedTopbar {
 
   loadSimulatorUsers(): void {
     this.simulatorLoading.set(true);
+    // Exclure le vrai utilisateur connecté de la liste (on ne se simule pas soi-même).
+    const realId = (this.authService.realUser() ?? this.currentUser())?.id;
     this.usersService.list({ is_active: true, page_size: 100 }).subscribe({
       next: (res) => {
-        this.simulatorUsers.set(res.results);
+        this.simulatorUsers.set(res.results.filter(u => u.id !== realId));
         this.simulatorLoading.set(false);
       },
       error: () => this.simulatorLoading.set(false),

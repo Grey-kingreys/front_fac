@@ -1,4 +1,4 @@
-import { Component, inject, Output, EventEmitter, signal, computed } from '@angular/core';
+import { Component, inject, Output, EventEmitter, signal, computed, input, HostListener } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule, NgClass } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -68,16 +68,9 @@ const NAV_ITEMS: NavItem[] = [
   label: 'Zones & Dépôts',
   icon: 'mapPin',
   section: 'ADMINISTRATION',
-  roles: ['admin', 'superadmin'],
+  // Périmètre admin d'entreprise — le superadmin gère la plateforme SaaS, pas les zones/dépôts internes.
+  roles: ['admin'],
   },
-  {
-    path: '/admin',
-    label: 'Utilisateurs',
-    icon: 'users',
-    section: 'ADMINISTRATION',
-    roles: ['admin', 'superadmin'],
-  },
-
   // ── Catalogue ─────────────────────────────────────────────────────────────
   {
     path: '/produits',
@@ -126,11 +119,13 @@ const NAV_ITEMS: NavItem[] = [
     roles: ['admin', 'superviseur', 'caissier'],
   },
   {
+    // Accessible à tout le personnel : pointage de présence + demande de congé
+    // (self-service). La gestion des comptes/validations reste gatée dans la page.
     path: '/rh',
     label: 'Ressources Humaines',
     icon: 'users',
     section: 'GESTION',
-    roles: ['admin', 'superviseur'],
+    roles: ['admin', 'superviseur', 'gestionnaire_stock', 'caissier', 'chauffeur', 'maintenancier', 'commercial'],
   },
   {
     path: '/documents',
@@ -170,6 +165,7 @@ const ICONS: Record<string, string> = {
   chevronRight: `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>`,
   chevronsLeft: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m11 17-5-5 5-5"/><path d="m18 17-5-5 5-5"/></svg>`,
   chevronsRight: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 17 5-5-5-5"/><path d="m13 17 5-5-5-5"/></svg>`,
+  close: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>`,
   mapPin: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>`,
 package: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>`,
 fileText: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>`,
@@ -187,6 +183,10 @@ documents: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewB
 })
 export class Sidebar {
   @Output() collapsedChange = new EventEmitter<boolean>();
+  /** Émis quand la sidebar (drawer mobile) doit se fermer. */
+  @Output() closeMobile = new EventEmitter<void>();
+  /** Ouverture du drawer en mode mobile (piloté par le hamburger du topbar). */
+  mobileOpen = input(false);
 
   private authService = inject(AuthService);
   private sanitizer = inject(DomSanitizer);
@@ -194,6 +194,25 @@ export class Sidebar {
   isCollapsed = signal(false);
   isDarkTheme = signal(false);
   currentUser = computed(() => this.authService.currentUser());
+
+  // Détection mobile (< lg / 1024px) : le repli 72px est un comportement desktop uniquement.
+  isMobile = signal(this.computeIsMobile());
+  /** Sur mobile le drawer affiche toujours la version complète (jamais la version icônes). */
+  effectiveCollapsed = computed(() => !this.isMobile() && this.isCollapsed());
+
+  private computeIsMobile(): boolean {
+    return typeof window !== 'undefined' && window.innerWidth < 1024;
+  }
+
+  @HostListener('window:resize')
+  onResize(): void {
+    this.isMobile.set(this.computeIsMobile());
+  }
+
+  /** Ferme le drawer après un clic de navigation (mobile uniquement). */
+  onNavClick(): void {
+    if (this.isMobile()) this.closeMobile.emit();
+  }
 
   get filteredNavItems(): NavItem[] {
     const user = this.currentUser();

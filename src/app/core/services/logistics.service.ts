@@ -205,8 +205,9 @@ export class LogisticsService {
   }
 
   // GET /api/missions/{id}/qr/ — image QR encodée en base64 à afficher/imprimer
-  getMissionQr(id: number): Observable<{ qr_code_base64: string }> {
-    return this.http.get<{ qr_code_base64: string }>(`${this.BASE}/missions/${id}/qr/`);
+  // Le backend renvoie { qr_code: <uuid>, image_base64: <png base64> }
+  getMissionQr(id: number): Observable<{ qr_code: string; image_base64: string }> {
+    return this.http.get<{ qr_code: string; image_base64: string }>(`${this.BASE}/missions/${id}/qr/`);
   }
 
   // POST /api/missions/scanner-qr/ — le chauffeur scanne le QR pour démarrer

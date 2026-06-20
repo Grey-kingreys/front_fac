@@ -1,26 +1,43 @@
 <!-- Sidebar Container -->
+<!--
+  Desktop (lg+) : fixe à gauche, repliable 280↔72px.
+  Mobile (<lg)  : drawer hors écran (-translate-x-full), glisse à l'ouverture (mobileOpen).
+-->
 <aside
-  class="fixed inset-y-0 left-0 z-50 flex flex-col bg-white border-r border-slate-200 transition-all duration-300 ease-in-out overflow-hidden"
-  [ngClass]="isCollapsed() ? 'w-[72px]' : 'w-[280px]'"
+  class="fixed inset-y-0 left-0 z-[70] flex w-[280px] flex-col bg-white border-r border-slate-200 transition-all duration-300 ease-in-out overflow-hidden lg:translate-x-0"
+  [ngClass]="{
+    'translate-x-0': mobileOpen(),
+    '-translate-x-full': !mobileOpen(),
+    'lg:w-[72px]': effectiveCollapsed()
+  }"
 >
 
-  <!-- ========== HEADER : Logo + bouton plier (seulement quand déplié) ========== -->
+  <!-- ========== HEADER : Logo + bouton plier (desktop) / fermer (mobile) ========== -->
   <div class="flex items-center h-16 px-3 border-b border-slate-200 shrink-0 gap-2">
-    @if (!isCollapsed()) {
-      <a routerLink="/dashboard" class="flex items-center gap-3 flex-1 min-w-0 hover:opacity-80 transition-opacity">
+    @if (!effectiveCollapsed()) {
+      <a routerLink="/dashboard" (click)="onNavClick()" class="flex items-center gap-3 flex-1 min-w-0 hover:opacity-80 transition-opacity">
         <img src="/dj.png" alt="DjoulaGest" class="w-9 h-9 object-contain shrink-0">
         <span class="text-lg font-bold tracking-tight whitespace-nowrap">
           Djoula<span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-emerald-500">Gest</span>
         </span>
       </a>
-      <!-- Bouton plier (visible seulement en mode étendu) -->
+      <!-- Bouton plier (desktop uniquement) -->
       <button
         type="button"
         (click)="toggleCollapse()"
-        class="shrink-0 flex items-center justify-center w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors"
+        class="hidden lg:flex shrink-0 items-center justify-center w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors"
         title="Plier"
       >
         <span [innerHTML]="getIcon('chevronsLeft')"></span>
+      </button>
+      <!-- Bouton fermer le drawer (mobile uniquement) -->
+      <button
+        type="button"
+        (click)="closeMobile.emit()"
+        class="lg:hidden shrink-0 flex items-center justify-center w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors"
+        aria-label="Fermer le menu"
+      >
+        <span [innerHTML]="getIcon('close')"></span>
       </button>
     } @else {
       <!-- Logo seul, centré, sans bouton -->
@@ -31,10 +48,10 @@
   </div>
 
   <!-- ========== NAVIGATION (défilable) ========== -->
-  <nav class="flex-1 overflow-y-auto py-3 min-h-0" [ngClass]="isCollapsed() ? 'px-2' : 'px-3'">
+  <nav class="flex-1 overflow-y-auto py-3 min-h-0" [ngClass]="effectiveCollapsed() ? 'px-2' : 'px-3'">
 
     @for (section of navSections; track section.label) {
-      @if (!isCollapsed()) {
+      @if (!effectiveCollapsed()) {
         <p class="px-3 pt-3 pb-1 text-[10px] font-semibold tracking-widest text-slate-400 uppercase first:pt-0">
           {{ section.label }}
         </p>
@@ -48,14 +65,15 @@
           routerLinkActive
           #rla="routerLinkActive"
           [routerLinkActiveOptions]="{ exact: item.path === '/dashboard' }"
+          (click)="onNavClick()"
           class="group flex items-center rounded-xl text-sm font-medium transition-all duration-200 mb-0.5"
           [ngClass]="{
-            'gap-3 px-3 py-2.5': !isCollapsed(),
-            'justify-center p-2.5': isCollapsed(),
+            'gap-3 px-3 py-2.5': !effectiveCollapsed(),
+            'justify-center p-2.5': effectiveCollapsed(),
             'bg-emerald-50 text-emerald-700 border border-emerald-100': rla.isActive,
             'text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-transparent': !rla.isActive
           }"
-          [title]="isCollapsed() ? item.label : ''"
+          [title]="effectiveCollapsed() ? item.label : ''"
         >
           <span
             class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-all duration-200"
@@ -67,7 +85,7 @@
             <span [innerHTML]="getIcon(item.icon)"></span>
           </span>
 
-          @if (!isCollapsed()) {
+          @if (!effectiveCollapsed()) {
             <span class="truncate flex-1">{{ item.label }}</span>
             <span
               class="h-1.5 w-1.5 rounded-full bg-emerald-500 transition-opacity"
@@ -89,19 +107,19 @@
   <div class="mx-3 border-t border-slate-100 shrink-0"></div>
 
   <!-- ========== BAS : sécurité, thème, déconnexion (+ bouton déplier en mode réduit) ========== -->
-  <div class="shrink-0 py-3" [ngClass]="isCollapsed() ? 'px-2 space-y-1' : 'px-3 space-y-0.5'">
+  <div class="shrink-0 py-3" [ngClass]="effectiveCollapsed() ? 'px-2 space-y-1' : 'px-3 space-y-0.5'">
 
     <!-- Sécurité -->
     <button
       type="button"
       class="group w-full flex items-center rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
-      [ngClass]="isCollapsed() ? 'justify-center p-2.5' : 'gap-3 px-3 py-2.5'"
-      [title]="isCollapsed() ? 'Sécurité' : ''"
+      [ngClass]="effectiveCollapsed() ? 'justify-center p-2.5' : 'gap-3 px-3 py-2.5'"
+      [title]="effectiveCollapsed() ? 'Sécurité' : ''"
     >
       <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-500 group-hover:text-blue-600 transition-colors">
         <span [innerHTML]="getIcon('key')"></span>
       </span>
-      @if (!isCollapsed()) { <span>Sécurité</span> }
+      @if (!effectiveCollapsed()) { <span>Sécurité</span> }
     </button>
 
     <!-- Thème -->
@@ -109,13 +127,13 @@
       type="button"
       (click)="toggleTheme()"
       class="group w-full flex items-center rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
-      [ngClass]="isCollapsed() ? 'justify-center p-2.5' : 'gap-3 px-3 py-2.5'"
-      [title]="isCollapsed() ? (isDarkTheme() ? 'Sombre' : 'Clair') : ''"
+      [ngClass]="effectiveCollapsed() ? 'justify-center p-2.5' : 'gap-3 px-3 py-2.5'"
+      [title]="effectiveCollapsed() ? (isDarkTheme() ? 'Sombre' : 'Clair') : ''"
     >
       <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-500 group-hover:text-blue-600 transition-colors">
         <span [innerHTML]="isDarkTheme() ? getIcon('moon') : getIcon('sun')"></span>
       </span>
-      @if (!isCollapsed()) {
+      @if (!effectiveCollapsed()) {
         <span class="flex-1 text-left">Thème</span>
         <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 group-hover:bg-slate-200 transition-colors">
           {{ isDarkTheme() ? 'Sombre' : 'Clair' }}
@@ -123,8 +141,8 @@
       }
     </button>
 
-    <!-- Bouton déplier (visible seulement en mode réduit, tout en bas) -->
-    @if (isCollapsed()) {
+    <!-- Bouton déplier (visible seulement en mode réduit desktop, tout en bas) -->
+    @if (effectiveCollapsed()) {
       <button
         type="button"
         (click)="toggleCollapse()"

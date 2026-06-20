@@ -16,6 +16,7 @@ import {
   FinanceService, CashSession, CaissePhysique, Depense
 } from '../../../core/services/finance.service';
 import { ToastService } from '../../../core/services/toast';
+import { AuthService } from '../../../core/services/auth';
 
 @Component({
   selector: 'app-finance',
@@ -26,10 +27,15 @@ import { ToastService } from '../../../core/services/toast';
 export class Finance implements OnInit {
   private financeService = inject(FinanceService);
   private toast          = inject(ToastService);
+  private auth           = inject(AuthService);
 
   // ── Onglets ───────────────────────────────────────────────────────────────
 
   activeTab = signal<'sessions' | 'depenses'>('sessions');
+
+  // ── Rôle (vue caissier-centrée, miroir mobile « Caisse & Sessions ») ───────
+  private role = computed(() => this.auth.currentUser()?.role ?? '');
+  isCaissier   = computed(() => this.role() === 'caissier');
 
   // ── Sessions ──────────────────────────────────────────────────────────────
 
@@ -44,6 +50,30 @@ export class Finance implements OnInit {
       .filter(s => s.statut === 'ouverte')
       .reduce((sum, s) => sum + (s.solde_fermeture_theorique ?? s.solde_ouverture), 0)
   );
+
+  /**
+   * Sessions visibles dans l'UI. Un caissier ne doit voir QUE ses propres
+   * sessions (le backend le garantit déjà via get_queryset ; ce filtre ajoute
+   * une défense côté client et corrige le cas de la simulation de rôle, où le
+   * token de l'admin renvoie toutes les sessions de l'entreprise).
+   */
+  displayedSessions = computed<CashSession[]>(() => {
+    if (this.isCaissier()) {
+      const uid = this.auth.currentUser()?.id;
+      return this.sessions().filter(s => s.caissier === uid);
+    }
+    return this.sessions();
+  });
+
+  /** Session de caisse actuellement ouverte (la sienne pour un caissier). */
+  activeSession = computed<CashSession | null>(
+    () => this.displayedSessions().find(s => s.statut === 'ouverte') ?? null
+  );
+
+  /** Solde « calculé/théorique » d'une session (système). */
+  soldeCalcule(s: CashSession): number {
+    return s.solde_fermeture_theorique ?? s.solde_ouverture;
+  }
 
   // ── Caisses disponibles (pour le select d'ouverture) ─────────────────────
 
@@ -94,7 +124,12 @@ export class Finance implements OnInit {
 
   loadCaisses(): void {
     this.financeService.listCaisses().subscribe({
-      next: (res) => this.caisses.set(res.results.filter(c => c.is_active)),
+      // Une session ne peut s'ouvrir que sur une caisse physique OUVERTE
+      // (contrainte backend : au plus une caisse ouverte par dépôt). On ne
+      // retient donc que les caisses actives ET ouvertes.
+      next: (res) => this.caisses.set(
+        res.results.filter(c => c.is_active && c.statut === 'ouverte')
+      ),
       error: () => {},
     });
   }
@@ -123,13 +158,47 @@ export class Finance implements OnInit {
 
   // ── Ouverture d'une session ───────────────────────────────────────────────
 
+  /** Caisse physique rattachée au dépôt du caissier (résolution auto, comme mobile). */
+  private resolveCaisseIdForCaissier(): number | null {
+    const depotId = this.auth.currentUser()?.depot_id ?? null;
+    if (depotId == null) return null;
+    return this.caisses().find(c => c.depot === depotId)?.id ?? null;
+  }
+
+  openOpenPanel(): void {
+    this.openForm = { caisse: 0, solde_ouverture: 0, notes: '' };
+    // Cas mono-dépôt (admin/superviseur) : une seule caisse ouverte → on la
+    // prend d'office, comme le mobile. S'il y en a plusieurs, l'utilisateur choisit.
+    if (!this.isCaissier() && this.caisses().length === 1) {
+      this.openForm.caisse = this.caisses()[0].id;
+    }
+    this.showOpenPanel.set(true);
+  }
+
   openSession(): void {
-    if (!this.openForm.caisse) {
+    let caisseId = Number(this.openForm.caisse) || 0;
+
+    // Caissier : la caisse est résolue automatiquement depuis son dépôt (parité mobile).
+    if (this.isCaissier()) {
+      const resolved = this.resolveCaisseIdForCaissier();
+      if (!resolved) {
+        this.toast.error('Aucune caisse physique pour votre dépôt. Contactez votre administrateur.');
+        return;
+      }
+      caisseId = resolved;
+    }
+
+    if (!caisseId) {
       this.toast.error('Sélectionnez une caisse.');
       return;
     }
+
     this.actionLoading.set(true);
-    this.financeService.openSession(this.openForm).subscribe({
+    this.financeService.openSession({
+      caisse: caisseId,
+      solde_ouverture: Number(this.openForm.solde_ouverture) || 0,
+      notes: this.openForm.notes || undefined,
+    }).subscribe({
       next: () => {
         this.toast.success('Session de caisse ouverte.');
         this.showOpenPanel.set(false);
@@ -156,9 +225,23 @@ export class Finance implements OnInit {
     this.showClosePanel.set(true);
   }
 
+  /** Écart en direct = solde réel compté − solde calculé système. */
+  get closeEcart(): number {
+    const s = this.selectedSession();
+    if (!s) return 0;
+    return (Number(this.closeForm.solde_reel) || 0) - this.soldeCalcule(s);
+  }
+
+  get closeEcartNonNul(): boolean { return Math.abs(this.closeEcart) > 0; }
+
   closeSession(): void {
     const s = this.selectedSession();
     if (!s) return;
+    // Motif obligatoire dès qu'il y a un écart (règle anti-fraude — caisses).
+    if (this.closeEcartNonNul && !this.closeForm.motif_ecart.trim()) {
+      this.toast.error('Le motif est obligatoire en cas d\'écart.');
+      return;
+    }
     this.actionLoading.set(true);
     this.financeService.closeSession(s.id, this.closeForm).subscribe({
       next: () => {

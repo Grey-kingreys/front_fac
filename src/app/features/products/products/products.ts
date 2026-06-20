@@ -54,7 +54,7 @@ export class Products implements OnInit {
   productPanelLoading = signal(false);
 
   productForm: ProductPayload = {
-    nom: '', reference: '', description: '',
+    nom: '', reference: '', code_barre: '', description: '',
     categorie: 0, unite: 0,
     prix_achat: 0, prix_vente: 0, tva_taux: 18,
   };
@@ -153,7 +153,7 @@ export class Products implements OnInit {
   openCreateProduct(): void {
     this.isEditingProduct.set(false);
     this.editingProductId.set(null);
-    this.productForm = { nom: '', reference: '', description: '', categorie: 0, unite: 0, prix_achat: 0, prix_vente: 0, tva_taux: 18 };
+    this.productForm = { nom: '', reference: '', code_barre: '', description: '', categorie: 0, unite: 0, prix_achat: 0, prix_vente: 0, tva_taux: 18 };
     this.showProductPanel.set(true);
   }
 
@@ -161,7 +161,7 @@ export class Products implements OnInit {
     this.isEditingProduct.set(true);
     this.editingProductId.set(p.id);
     this.productForm = {
-      nom: p.name, reference: p.reference, description: p.description || '',
+      nom: p.name, reference: p.reference, code_barre: p.barcode || '', description: p.description || '',
       categorie: p.category_id ?? 0, unite: p.unit_id ?? 0,
       prix_achat: p.purchase_price, prix_vente: p.selling_price, tva_taux: p.tva_rate,
     };
