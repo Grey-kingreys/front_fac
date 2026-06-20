@@ -1,14 +1,27 @@
 <div class="flex min-h-screen bg-slate-50/50">
-  <!-- Sidebar -->
-  <app-sidebar (collapsedChange)="onSidebarCollapsed($event)"></app-sidebar>
+  <!-- Sidebar : fixe sur desktop, drawer sur mobile -->
+  <app-sidebar
+    [mobileOpen]="mobileSidebarOpen()"
+    (collapsedChange)="onSidebarCollapsed($event)"
+    (closeMobile)="closeMobileSidebar()"
+  ></app-sidebar>
 
-  <!-- Contenu principal : marge gauche qui suit la largeur de la sidebar -->
+  <!-- Fond semi-transparent (mobile uniquement, quand le drawer est ouvert) -->
+  @if (mobileSidebarOpen()) {
+    <div
+      class="fixed inset-0 z-[60] bg-slate-900/50 lg:hidden"
+      (click)="closeMobileSidebar()"
+      aria-hidden="true"
+    ></div>
+  }
+
+  <!-- Contenu principal : marge gauche desktop seulement (mobile = plein écran) -->
   <div
-    class="flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out"
-    [style.margin-left]="sidebarCollapsed() ? '72px' : '280px'"
+    class="flex-1 flex flex-col min-w-0 ml-0 transition-all duration-300 ease-in-out"
+    [ngClass]="sidebarCollapsed() ? 'lg:ml-[72px]' : 'lg:ml-[280px]'"
   >
     <!-- Topbar (inclut la bannière de simulation + header) -->
-    <app-authenticated-topbar (toggleSidebar)="onSidebarCollapsed(!sidebarCollapsed())"></app-authenticated-topbar>
+    <app-authenticated-topbar (toggleSidebar)="toggleMobileSidebar()"></app-authenticated-topbar>
 
     <main class="flex-1 overflow-auto p-4 lg:p-6">
       <router-outlet></router-outlet>

@@ -44,8 +44,8 @@
         <span class="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></span>
       </button>
 
-      <!-- ── Bouton Simulateur (SuperAdmin uniquement) ── -->
-      @if (isSuperAdmin()) {
+      <!-- ── Bouton Simulateur (Admin uniquement) ── -->
+      @if (canSimulate()) {
         <div class="relative">
           <button
             type="button"

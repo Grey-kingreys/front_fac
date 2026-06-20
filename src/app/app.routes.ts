@@ -84,15 +84,9 @@ export const routes: Routes = [
                 loadComponent: () => import('./features/admin/companies/companies').then(m => m.Companies),
             },
             {
-                path: 'admin',
-                canActivate: [roleGuard],
-                data: { roles: ['admin', 'superadmin'] },
-                loadComponent: () => import('./features/admin/users/users').then(m => m.Users),
-            },
-            {
                 path: 'zones',
                 canActivate: [roleGuard],
-                data: { roles: ['admin', 'superadmin'] },
+                data: { roles: ['admin'] },
                 loadComponent: () => import('./features/zones/zones/zones').then(m => m.Zones),
             },
             {

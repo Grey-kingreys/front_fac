@@ -93,6 +93,7 @@ export interface Product {
   id: number;
   name: string;
   reference: string;
+  barcode?: string;          // code_barre
   description?: string;
   category?: string;         // categorie_nom (read_only)
   category_id?: number;      // ID FK categorie
@@ -123,6 +124,7 @@ export interface ProductListParams {
 export interface ProductPayload {
   nom: string;          // obligatoire
   reference: string;    // obligatoire
+  code_barre?: string;  // code-barres EAN/UPC (optionnel)
   description?: string;
   categorie: number;    // FK obligatoire — ID de Categorie
   unite: number;        // FK obligatoire — ID de Unite
@@ -138,6 +140,7 @@ interface BackendProduct {
   id: number;
   nom: string;
   reference: string;
+  code_barre?: string;
   description?: string;
   categorie_nom?: string;
   categorie?: number;
@@ -176,6 +179,7 @@ export class ProductsService {
       id:             p.id,
       name:           p.nom,
       reference:      p.reference,
+      barcode:        p.code_barre,
       description:    p.description,
       category:       p.categorie_nom,
       category_id:    p.categorie,

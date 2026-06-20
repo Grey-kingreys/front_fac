@@ -335,7 +335,7 @@
             <p class="text-sm text-gray-600 text-center mb-3">Entrez le code à 6 chiffres pour confirmer :</p>
 
             <!-- 6 boîtes OTP -->
-            <div class="flex gap-2 justify-center mb-4" (paste)="onSetup2faPaste($event)">
+            <div class="flex gap-1.5 sm:gap-2 justify-center mb-4" (paste)="onSetup2faPaste($event)">
               @for (digit of setup2faDigits(); track $index; let i = $index) {
                 <input
                   #setup2faBox
@@ -345,7 +345,7 @@
                   [value]="digit"
                   (input)="onSetup2faBoxInput(i, $event)"
                   (keydown)="onSetup2faBoxKeyDown(i, $event)"
-                  class="w-10 h-13 text-center text-xl font-bold border-2 rounded-xl outline-none transition-all
+                  class="w-9 sm:w-10 h-12 sm:h-13 text-center text-xl font-bold border-2 rounded-xl outline-none transition-all
                          focus:border-blue-500 focus:ring-2 focus:ring-blue-200
                          border-gray-200 text-gray-900 bg-white disabled:opacity-50"
                   [class.border-red-400]="setup2faError() !== null"

@@ -55,6 +55,26 @@
         <div class="text-sm text-gray-500">Alertes stock</div>
       </div>
     </div>
+
+    <!-- Graphiques -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <app-chart-card title="Croissance des entreprises" subtitle="7 derniers mois"
+        badge="+33%" badgeClass="text-emerald-600 bg-emerald-50">
+        <div class="h-64 w-full">
+          <ngx-charts-area-chart [results]="companiesGrowth" [scheme]="chartScheme" [view]="chartView()"
+            [gradient]="true" [xAxis]="true" [yAxis]="true" [roundDomains]="true">
+          </ngx-charts-area-chart>
+        </div>
+      </app-chart-card>
+      <app-chart-card title="Statut des entreprises" subtitle="Vue plateforme">
+        <div class="h-64 w-full">
+          <ngx-charts-pie-chart [results]="companiesStatusChart" [scheme]="chartScheme" [view]="chartView()"
+            [doughnut]="true" [arcWidth]="0.35" [legend]="true" [labels]="false">
+          </ngx-charts-pie-chart>
+        </div>
+      </app-chart-card>
+    </div>
+
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
       <h2 class="text-lg font-bold text-gray-900 mb-5">Accès rapide</h2>
       <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -64,7 +84,7 @@
           </div>
           <span class="text-xs font-medium text-gray-700 text-center">Entreprises</span>
         </a>
-        <a routerLink="/admin" class="flex flex-col items-center gap-2 p-4 rounded-xl hover:bg-emerald-50 transition-colors group">
+        <a routerLink="/rh" class="flex flex-col items-center gap-2 p-4 rounded-xl hover:bg-emerald-50 transition-colors group">
           <div class="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center group-hover:bg-emerald-200 transition-colors">
             <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20H7m10 0v-2a3 3 0 00-5.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
           </div>
@@ -152,6 +172,42 @@
           <div class="text-2xl font-bold text-gray-900 mb-1">{{ missionsActives() }}</div>
           <div class="text-sm text-gray-500">Missions en cours</div>
         </div>
+      </div>
+
+      <!-- Graphiques -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <app-chart-card title="Évolution du chiffre d'affaires" subtitle="7 derniers jours"
+          badge="+12%" badgeClass="text-emerald-600 bg-emerald-50">
+          <div class="h-64 w-full">
+            <ngx-charts-area-chart [results]="caTrend" [scheme]="chartScheme" [view]="chartView()"
+              [gradient]="true" [xAxis]="true" [yAxis]="true"              [yAxisTickFormatting]="formatYAxis">
+            </ngx-charts-area-chart>
+          </div>
+        </app-chart-card>
+
+        <app-chart-card title="Modes de paiement" subtitle="Répartition des encaissements">
+          <div class="h-64 w-full">
+            <ngx-charts-pie-chart [results]="paiementsChart" [scheme]="chartScheme" [view]="chartView()"
+              [doughnut]="true" [arcWidth]="0.35" [legend]="true" [labels]="false">
+            </ngx-charts-pie-chart>
+          </div>
+        </app-chart-card>
+
+        <app-chart-card title="Top produits du jour" subtitle="Quantités vendues">
+          <div class="h-64 w-full">
+            <ngx-charts-bar-vertical [results]="topProduitsChart" [scheme]="chartScheme" [view]="chartView()"
+              [xAxis]="true" [yAxis]="true" [roundEdges]="true" [barPadding]="12">
+            </ngx-charts-bar-vertical>
+          </div>
+        </app-chart-card>
+
+        <app-chart-card title="Ventes par dépôt" subtitle="CA du jour (M GNF)">
+          <div class="h-64 w-full">
+            <ngx-charts-bar-vertical [results]="ventesParDepotChart" [scheme]="chartScheme" [view]="chartView()"
+              [xAxis]="true" [yAxis]="true" [roundEdges]="true" [barPadding]="16">
+            </ngx-charts-bar-vertical>
+          </div>
+        </app-chart-card>
       </div>
 
       <!-- Ligne 2 : Top produits + Ventes récentes -->
@@ -312,6 +368,25 @@
         <div class="text-sm text-gray-500">Transferts en cours</div>
       </div>
     </div>
+
+    <!-- Graphiques -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <app-chart-card title="Niveau de stock" subtitle="Unités par dépôt">
+        <div class="h-64 w-full">
+          <ngx-charts-bar-vertical [results]="stockParDepotChart" [scheme]="chartScheme" [view]="chartView()"
+            [xAxis]="true" [yAxis]="true" [roundEdges]="true" [barPadding]="16">
+          </ngx-charts-bar-vertical>
+        </div>
+      </app-chart-card>
+      <app-chart-card title="Mouvements de stock" subtitle="Répartition (7 jours)">
+        <div class="h-64 w-full">
+          <ngx-charts-pie-chart [results]="mouvementsChart" [scheme]="chartScheme" [view]="chartView()"
+            [doughnut]="true" [arcWidth]="0.35" [legend]="true" [labels]="false">
+          </ngx-charts-pie-chart>
+        </div>
+      </app-chart-card>
+    </div>
+
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
       <h2 class="text-lg font-bold text-gray-900 mb-5">Accès rapide</h2>
       <div class="grid grid-cols-3 gap-4 max-w-sm">
@@ -363,6 +438,26 @@
         <div class="text-sm text-gray-500">CA encaissé aujourd'hui</div>
       </div>
     </div>
+
+    <!-- Graphiques -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <app-chart-card title="CA encaissé" subtitle="7 derniers jours"
+        badge="+12%" badgeClass="text-emerald-600 bg-emerald-50">
+        <div class="h-64 w-full">
+          <ngx-charts-area-chart [results]="caTrend" [scheme]="chartScheme" [view]="chartView()"
+            [gradient]="true" [xAxis]="true" [yAxis]="true"            [yAxisTickFormatting]="formatYAxis">
+          </ngx-charts-area-chart>
+        </div>
+      </app-chart-card>
+      <app-chart-card title="Modes de paiement" subtitle="Répartition des encaissements">
+        <div class="h-64 w-full">
+          <ngx-charts-pie-chart [results]="paiementsChart" [scheme]="chartScheme" [view]="chartView()"
+            [doughnut]="true" [arcWidth]="0.35" [legend]="true" [labels]="false">
+          </ngx-charts-pie-chart>
+        </div>
+      </app-chart-card>
+    </div>
+
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
       <h2 class="text-lg font-bold text-gray-900 mb-5">Accès rapide</h2>
       <div class="grid grid-cols-3 gap-4 max-w-sm">
@@ -412,6 +507,18 @@
         <div class="text-sm text-gray-500">Missions actives</div>
       </div>
     </div>
+
+    <!-- Graphiques -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <app-chart-card title="Mes missions" subtitle="Par statut (ce mois)">
+        <div class="h-64 w-full">
+          <ngx-charts-pie-chart [results]="missionsStatutChart" [scheme]="chartScheme" [view]="chartView()"
+            [doughnut]="true" [arcWidth]="0.35" [legend]="true" [labels]="false">
+          </ngx-charts-pie-chart>
+        </div>
+      </app-chart-card>
+    </div>
+
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
       <h2 class="text-lg font-bold text-gray-900 mb-5">Accès rapide</h2>
       <a routerLink="/logistique" class="inline-flex flex-col items-center gap-2 p-4 rounded-xl hover:bg-orange-50 transition-colors group">
@@ -447,6 +554,26 @@
         <div class="text-sm text-gray-500">CA ce mois-ci</div>
       </div>
     </div>
+
+    <!-- Graphiques -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <app-chart-card title="Évolution du chiffre d'affaires" subtitle="7 derniers jours"
+        badge="+12%" badgeClass="text-emerald-600 bg-emerald-50">
+        <div class="h-64 w-full">
+          <ngx-charts-area-chart [results]="caTrend" [scheme]="chartScheme" [view]="chartView()"
+            [gradient]="true" [xAxis]="true" [yAxis]="true"            [yAxisTickFormatting]="formatYAxis">
+          </ngx-charts-area-chart>
+        </div>
+      </app-chart-card>
+      <app-chart-card title="Top clients" subtitle="CA cumulé (M GNF)">
+        <div class="h-64 w-full">
+          <ngx-charts-bar-vertical [results]="topClientsChart" [scheme]="chartScheme" [view]="chartView()"
+            [xAxis]="true" [yAxis]="true" [roundEdges]="true" [barPadding]="16">
+          </ngx-charts-bar-vertical>
+        </div>
+      </app-chart-card>
+    </div>
+
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
       <h2 class="text-lg font-bold text-gray-900 mb-5">Accès rapide</h2>
       <div class="grid grid-cols-2 gap-4 max-w-xs">

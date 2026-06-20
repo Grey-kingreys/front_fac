@@ -314,11 +314,22 @@ export class Logistics implements OnInit, AfterViewChecked {
     this.showQrPanel.set(true);
     this.qrLoading.set(true);
     this.svc.getMissionQr(mission.id).subscribe({
-      next: (r) => { this.qrImageBase64.set(r.qr_code_base64); this.qrLoading.set(false); },
+      next: (r) => { this.qrImageBase64.set(r.image_base64); this.qrLoading.set(false); },
       error: () => { this.toast.error('Erreur lors de la génération du QR code.'); this.qrLoading.set(false); },
     });
   }
   closeQrPanel(): void { this.showQrPanel.set(false); this.qrTarget.set(null); }
+
+  // Télécharge le QR en PNG (pour impression / collage sur le bon de mission).
+  downloadQr(): void {
+    const b64 = this.qrImageBase64();
+    if (!b64) return;
+    const numero = this.qrTarget()?.numero ?? 'mission';
+    const a = document.createElement('a');
+    a.href = 'data:image/png;base64,' + b64;
+    a.download = `QR-${numero}.png`;
+    a.click();
+  }
 
   // ── Véhicules ─────────────────────────────────────────────────────────────
 

@@ -17,6 +17,8 @@ export interface UserSummary {
   company_name: string | null;
   depot_id: number | null;
   depot_name: string | null;
+  zone_id: number | null;
+  zone_name: string | null;
   avatar_url: string | null;
   created_at?: string;
 }
@@ -43,6 +45,7 @@ export interface UserCreatePayload {
   phone?: string;
   role: string;
   depot_id?: number | null;
+  zone_id?: number | null;
   password: string;
 }
 
@@ -53,6 +56,7 @@ export interface UserUpdatePayload {
   role?: string;
   is_active?: boolean;
   depot_id?: number | null;
+  zone_id?: number | null;
 }
 
 export interface PasswordResetPayload {

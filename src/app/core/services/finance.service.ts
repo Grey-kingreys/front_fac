@@ -38,6 +38,9 @@ export interface CashSession {
   ecart: number;
   ouvert_le: string;
   ferme_le: string | null;
+  nombre_transactions?: number;
+  total_entrees?: number;
+  total_sorties?: number;
 }
 
 export interface PaginatedSessions {
@@ -56,6 +59,7 @@ export interface CaissePhysique {
   depot: number;
   depot_nom: string;
   solde_actuel: number;
+  statut: 'ouverte' | 'fermee';
   is_active: boolean;
 }
 
