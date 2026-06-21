@@ -17,7 +17,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
-  Sale, SaleCreatePayload, SalesService, Client
+  Sale, SaleCreatePayload, SalesService, Client, MobileMoneyAccount
 } from '../../../core/services/sales';
 import { ProductsService, Product } from '../../../core/services/products';
 import { AuthService } from '../../../core/services/auth';
@@ -81,6 +81,27 @@ export class Sales implements OnInit {
   // mode_paiement_initial : 'especes' | 'orange_money' | 'mtn_money' | 'virement'
   paymentMode: 'especes' | 'orange_money' | 'mtn_money' | 'virement' = 'especes';
 
+  // Référence de transaction (obligatoire pour orange_money / mtn_money / virement)
+  referencePaiement = '';
+
+  // Comptes Mobile Money de l'entreprise + compte sélectionné (orange/mtn)
+  mmAccounts = signal<MobileMoneyAccount[]>([]);
+  selectedCompteMmId = '';
+
+  // Modes nécessitant une référence / un compte mobile money
+  needsReference = computed(() =>
+    ['orange_money', 'mtn_money', 'virement'].includes(this.paymentMode));
+  isMobileMoney = computed(() =>
+    ['orange_money', 'mtn_money'].includes(this.paymentMode));
+  // Comptes filtrés sur l'opérateur du mode choisi
+  filteredMmAccounts = computed(() =>
+    this.mmAccounts().filter(a => a.operateur === this.paymentMode));
+
+  // Réinitialise le compte sélectionné quand on change d'opérateur
+  onPaymentModeChange(): void {
+    this.selectedCompteMmId = '';
+  }
+
   // Montant encaissé (pour mode partiel)
   montantPaye = 0;
 
@@ -104,6 +125,12 @@ export class Sales implements OnInit {
     this.salesService.listClients({ page_size: 200 }).subscribe({
       next: (res) => this.clients.set(res.results),
       error: () => {}, // pas bloquant, le client peut être anonyme
+    });
+
+    // Charge les comptes Mobile Money (pour le paiement Orange/MTN)
+    this.salesService.listComptesMobileMoney().subscribe({
+      next: (res) => this.mmAccounts.set((res.results ?? []).filter(a => a.is_active)),
+      error: () => {}, // non bloquant (ex. commercial sans accès finance)
     });
   }
 
@@ -139,6 +166,8 @@ export class Sales implements OnInit {
     this.selectedProductId = '';
     this.addQty            = 1;
     this.paymentMode       = 'especes';
+    this.referencePaiement = '';
+    this.selectedCompteMmId = '';
     this.montantPaye       = 0;
     this.showSalePanel.set(true);
   }
@@ -210,6 +239,18 @@ export class Sales implements OnInit {
       return;
     }
 
+    // Référence de transaction obligatoire pour Orange/MTN/Virement (règle backend)
+    const reference = this.referencePaiement.trim();
+    if (this.needsReference() && !reference) {
+      this.toast.error('La référence de transaction est obligatoire pour ce mode de paiement.');
+      return;
+    }
+    // Compte Mobile Money obligatoire pour Orange/MTN (crédite un compte précis)
+    if (this.isMobileMoney() && !this.selectedCompteMmId) {
+      this.toast.error('Sélectionnez le compte Mobile Money crédité pour ce paiement.');
+      return;
+    }
+
     this.saleLoading.set(true);
 
     // Construit le payload avec les VRAIS champs du backend
@@ -226,6 +267,12 @@ export class Sales implements OnInit {
       montant_paye:          this.totalTTC(),    // ✅ montant encaissé
       mode_paiement_initial: this.paymentMode,  // ✅ mode d'encaissement
     };
+    if (this.needsReference()) {
+      payload.reference_paiement = reference;
+    }
+    if (this.isMobileMoney()) {
+      payload.compte_mobile_money = +this.selectedCompteMmId;
+    }
 
     this.salesService.create(payload).subscribe({
       next: (sale) => {

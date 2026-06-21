@@ -2,6 +2,51 @@
 
 > CDC v1.0 — Mars 2026 | Groupe 1 | Deadline livraison : **20/06/2026**
 
+## ➕ Zones & Dépôts — carte de coordonnées + parité mobile/backend (20/06/2026)
+
+Le web de Zones & Dépôts ne permettait pas de placer un point sur une carte (alors que le mobile le fait
+via `MapPickerSheet`/`flutter_map`) et désynchronisait plusieurs champs avec le backend. Mise à parité :
+
+- **Nouveau composant `MapPicker`** ([shared/components/map-picker/map-picker.ts](src/app/shared/components/map-picker/map-picker.ts)) :
+  carte OpenStreetMap via **Leaflet** (déjà en deps + CSS importée dans `styles.css`), épingle **fixe au centre**
+  style « Uber » (overlay, pas de marqueur Leaflet → évite le bug d'icône bundler), lecture des coordonnées en
+  direct, bouton « ma position » (`navigator.geolocation`), effacement. Émet `coordsChange` **arrondi à 6 décimales**
+  (contrainte backend `DecimalField(decimal_places=6)`, sinon 400 — même piège que le mobile) et `coordsCleared`.
+  Inputs `latitude`/`longitude` pour l'édition. `invalidateSize()` après ouverture du slide-over.
+- **`core/services/zones.ts` — alignement backend (`apps/companies/serializers.py`)** :
+  - `Zone.nombre_depots` → **`depot_count`** (champ réel renvoyé) + ajout `description`.
+  - `Depot` : `manager_id`/`manager_name` (inexistants côté backend) → **`gestionnaire {id, nom, email}`** (lecture seule,
+    résolu via `User.depot`) ; ajout **`address`, `latitude`, `longitude`**.
+  - `DepotPayload` : suppression de `manager_id` (ignoré par `DepotCreateUpdateSerializer`) ; ajout `address?`,
+    `latitude?`, `longitude?`. `ZonePayload` : ajout `description?`.
+  - `listDepots` : filtre par zone via le param **`zone`** (le backend `DepotViewSet.get_queryset` lit `zone`, pas `zone_id`)
+    → corrige le filtre dépôts par zone qui ne marchait pas.
+- **`features/zones/zones`** : formulaire **zone** = champ Description + `MapPicker` (remplace les inputs lat/long manuels) ;
+  formulaire **dépôt** = champ Adresse + `MapPicker` (le dépôt n'avait aucune coordonnée côté web). Handlers
+  `onZoneCoords`/`onDepotCoords` + `…Cleared`. Carte dépôt : affichage **gestionnaire** (`gestionnaire.nom`), **adresse**
+  et **GPS**. Table zones : `depot_count`.
+
+⚠️ Le gestionnaire d'un dépôt n'est pas éditable ici (ni mobile ni backend) : il est affecté via `User.depot` dans la
+gestion des utilisateurs (rôle `gestionnaire_stock`). Le backend renvoie l'objet `gestionnaire` en lecture seule.
+`tsc --noEmit` = 0 · `ng build` dev = **0 erreur**.
+
+## ➕ Vente Mobile Money — référence + compte crédité (fix 400) (20/06/2026)
+
+**Bug 400** : à l'enregistrement d'une vente payée en Orange/MTN/Virement, le web n'envoyait **pas**
+`reference_paiement` (obligatoire backend pour ces modes) → 400. Et aucun **compte mobile money** crédité.
+
+**Correctif** (`sales.ts`/`sales.html`, `core/services/sales.ts`) :
+- Champ **« Référence de transaction »** affiché pour {orange, mtn, virement} (`needsReference()`),
+  envoyé dans `reference_paiement`.
+- **Sélecteur de compte** Orange/MTN (`isMobileMoney()`) : comptes chargés via
+  `SalesService.listComptesMobileMoney()` (`GET /comptes-mobile-money/`), filtrés client-side sur
+  `is_active` + opérateur (`filteredMmAccounts()`), reset au changement d'opérateur
+  (`onPaymentModeChange()`). `compte_mobile_money` ajouté à `SaleCreatePayload` + payload. Validation
+  client (référence + compte obligatoires) avant POST. 0 compte → message « Ajoutez-en un dans Finance →
+  Mobile Money ». Nouvelle interface `MobileMoneyAccount`. ⚠️ Nécessite migration backend **`ventes/0004`**
+  (FK `Paiement.compte_mobile_money` + crédit solde + `TransactionMobileMoney`). `tsc --noEmit` = 0,
+  `ng build` = succès.
+
 ## ➕ RH — présence 100% self-service + récap user-based (20/06/2026)
 
 Suite à la clarification « **les employés sont les utilisateurs de l'entreprise** » :
