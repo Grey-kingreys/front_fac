@@ -109,12 +109,26 @@ export interface SaleCreatePayload {
   montant_paye?: number;                     // montant encaissé immédiatement
   mode_paiement_initial?: 'especes' | 'orange_money' | 'mtn_money' | 'virement'; // mode d'encaissement
   reference_paiement?: string;              // référence Mobile Money
+  compte_mobile_money?: number | null;      // ID compte crédité (obligatoire si orange_money/mtn_money)
 }
 
 export interface PaiementPayload {
   montant: number;
   mode: 'especes' | 'orange_money' | 'mtn_money' | 'virement' | 'points_fidelite';
   reference?: string; // obligatoire pour orange_money / mtn_money / virement côté backend
+  compte_mobile_money?: number | null; // obligatoire si orange_money/mtn_money
+}
+
+// Compte Mobile Money (Orange/MTN) — pour le sélecteur de paiement
+export interface MobileMoneyAccount {
+  id: number;
+  operateur: 'orange_money' | 'mtn_money';
+  operateur_label: string;
+  depot: number;
+  depot_nom: string;
+  numero: string;
+  nom_titulaire: string;
+  is_active: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -166,6 +180,14 @@ export class SalesService {
 
   addPaiement(id: number, data: PaiementPayload): Observable<Sale> {
     return this.http.post<Sale>(`${this.BASE}/${id}/paiement/`, data);
+  }
+
+  // ── Comptes Mobile Money (pour le sélecteur de paiement Orange/MTN) ────────
+  // GET /api/comptes-mobile-money/ (FINANCE_READ : admin/superviseur/caissier)
+
+  listComptesMobileMoney(): Observable<{ results: MobileMoneyAccount[] }> {
+    return this.http.get<{ results: MobileMoneyAccount[] }>(
+      `${environment.apiUrl}/comptes-mobile-money/?page_size=200&is_active=true`);
   }
 
   // ── Facture PDF et bon de livraison PDF ────────────────────────────────────

@@ -7,29 +7,54 @@ export interface Zone {
   id: number;
   name: string;
   code: string;
+  description?: string;
   latitude: number | null;
   longitude: number | null;
   is_active: boolean;
-  nombre_depots?: number;
+  depot_count?: number;
   created_at: string;
+}
+
+/** Gestionnaire d'un dépôt — résolu côté backend via User.depot (lecture seule). */
+export interface DepotGestionnaire {
+  id: number;
+  nom: string;
+  email: string;
 }
 
 export interface Depot {
   id: number;
   name: string;
   code: string;
+  address: string;
   zone_id: number;
   zone_name: string;
-  manager_id: number | null;
-  manager_name: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  gestionnaire: DepotGestionnaire | null;
   is_active: boolean;
   created_at: string;
 }
 
 export interface PaginatedZones { count: number; results: Zone[]; }
 export interface PaginatedDepots { count: number; results: Depot[]; }
-export interface ZonePayload { name: string; code: string; latitude?: number | null; longitude?: number | null; }
-export interface DepotPayload { name: string; code: string; zone_id: number; manager_id?: number | null; }
+
+export interface ZonePayload {
+  name: string;
+  code: string;
+  description?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+}
+
+export interface DepotPayload {
+  name: string;
+  code: string;
+  zone_id: number;
+  address?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+}
 
 @Injectable({ providedIn: 'root' })
 export class ZonesService {
@@ -61,7 +86,8 @@ export class ZonesService {
     const q = new URLSearchParams();
     if (params.page) q.set('page', String(params.page));
     if (params.search) q.set('search', params.search);
-    if (params.zone_id) q.set('zone_id', String(params.zone_id));
+    // Le backend (DepotViewSet.get_queryset) filtre sur le param `zone`, pas `zone_id`.
+    if (params.zone_id) q.set('zone', String(params.zone_id));
     const qs = q.toString();
     return this.http.get<PaginatedDepots>(`${this.DEPOTS}/${qs ? '?' + qs : ''}`);
   }

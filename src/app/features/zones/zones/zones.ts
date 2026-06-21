@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ZonesService, Zone, Depot, ZonePayload, DepotPayload } from '../../../core/services/zones';
 import { ToastService } from '../../../core/services/toast';
+import { MapPicker } from '../../../shared/components/map-picker/map-picker';
 
 @Component({
   selector: 'app-zones',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MapPicker],
   templateUrl: './zones.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -40,8 +41,8 @@ export class Zones implements OnInit {
   panelType    = signal<'zone' | 'depot'>('zone');
   panelLoading = signal(false);
 
-  zoneForm: ZonePayload = { name: '', code: '', latitude: null, longitude: null };
-  depotForm: DepotPayload = { name: '', code: '', zone_id: 0, manager_id: null };
+  zoneForm: ZonePayload = { name: '', code: '', description: '', latitude: null, longitude: null };
+  depotForm: DepotPayload = { name: '', code: '', zone_id: 0, address: '', latitude: null, longitude: null };
 
   // ── Confirm delete ────────────────────────────────────────────────────────
   deleteTarget = signal<{ type: 'zone' | 'depot'; id: number; name: string } | null>(null);
@@ -92,7 +93,7 @@ export class Zones implements OnInit {
     this.panelType.set('zone');
     this.isEditing.set(false);
     this.editingId.set(null);
-    this.zoneForm = { name: '', code: '', latitude: null, longitude: null };
+    this.zoneForm = { name: '', code: '', description: '', latitude: null, longitude: null };
     this.showPanel.set(true);
   }
 
@@ -100,7 +101,13 @@ export class Zones implements OnInit {
     this.panelType.set('zone');
     this.isEditing.set(true);
     this.editingId.set(zone.id);
-    this.zoneForm = { name: zone.name, code: zone.code, latitude: zone.latitude, longitude: zone.longitude };
+    this.zoneForm = {
+      name: zone.name,
+      code: zone.code,
+      description: zone.description ?? '',
+      latitude: zone.latitude,
+      longitude: zone.longitude,
+    };
     this.showPanel.set(true);
   }
 
@@ -109,7 +116,7 @@ export class Zones implements OnInit {
     this.panelType.set('depot');
     this.isEditing.set(false);
     this.editingId.set(null);
-    this.depotForm = { name: '', code: '', zone_id: 0, manager_id: null };
+    this.depotForm = { name: '', code: '', zone_id: 0, address: '', latitude: null, longitude: null };
     this.showPanel.set(true);
   }
 
@@ -117,11 +124,35 @@ export class Zones implements OnInit {
     this.panelType.set('depot');
     this.isEditing.set(true);
     this.editingId.set(depot.id);
-    this.depotForm = { name: depot.name, code: depot.code, zone_id: depot.zone_id, manager_id: depot.manager_id };
+    this.depotForm = {
+      name: depot.name,
+      code: depot.code,
+      zone_id: depot.zone_id,
+      address: depot.address ?? '',
+      latitude: depot.latitude,
+      longitude: depot.longitude,
+    };
     this.showPanel.set(true);
   }
 
   closePanel(): void { this.showPanel.set(false); }
+
+  // ── Sélection des coordonnées sur la carte ──────────────────────────────────
+  onZoneCoords(c: { latitude: number; longitude: number }): void {
+    this.zoneForm = { ...this.zoneForm, latitude: c.latitude, longitude: c.longitude };
+  }
+
+  onZoneCoordsCleared(): void {
+    this.zoneForm = { ...this.zoneForm, latitude: null, longitude: null };
+  }
+
+  onDepotCoords(c: { latitude: number; longitude: number }): void {
+    this.depotForm = { ...this.depotForm, latitude: c.latitude, longitude: c.longitude };
+  }
+
+  onDepotCoordsCleared(): void {
+    this.depotForm = { ...this.depotForm, latitude: null, longitude: null };
+  }
 
   canSaveZone(): boolean { return !!this.zoneForm.name.trim() && !!this.zoneForm.code.trim(); }
   canSaveDepot(): boolean { return !!this.depotForm.name.trim() && !!this.depotForm.code.trim() && !!this.depotForm.zone_id; }
